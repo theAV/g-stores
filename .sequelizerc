@@ -1,0 +1,8 @@
+const path = require('path');
+
+module.exports = {
+  'config': path.resolve('src', 'datastore/config/config.json'),
+  'models-path': path.resolve('src', 'datastore/models'),
+  'seeders-path': path.resolve('src', 'datastore/seeders'),
+  'migrations-path': path.resolve('src', 'datastore/migrations')
+}
