@@ -1,4 +1,4 @@
-# wms-ui
+# G-Store
 
 ## Project setup
 ```
