@@ -12,7 +12,12 @@
         <v-card-title class="px-7">Reports </v-card-title>
         <v-divider></v-divider>
         <div class="px-7 pt-7">
-          <v-radio-group v-model="reportTypeOption" row>
+          <v-radio-group
+            v-model="reportTypeOption"
+            row
+            class="mt-0"
+            @change="reportTypeChanged()"
+          >
             <v-radio value="1">
               <template v-slot:label>
                 <div class="primary--text">Party wise reports</div>
@@ -77,62 +82,72 @@
             </v-col>
           </v-row>
           <!-- commodityList -->
-          <div v-if="nodata" class="headline">No data available</div>
+          <!-- range report -->
+          <v-row v-if="reportTypeOption === '3'">
+            <v-col md="3">
+              <v-select
+                v-model="warehouseId"
+                :items="warehouseList"
+                item-value="id"
+                item-text="name"
+                label="Please select warehouse"
+                outlined
+                required
+              ></v-select>
+            </v-col>
+            <v-col md="3">
+              <v-select
+                v-model="reportType"
+                :items="reportOption"
+                item-value="id"
+                item-text="value"
+                label="Please select Option"
+                outlined
+                required
+              ></v-select>
+            </v-col>
+            <v-col md="3">
+              <v-menu
+                v-model="rangePicker"
+                :close-on-content-click="false"
+                :nudge-right="0"
+                transition="slide-y-transition"
+                bottom
+                min-width="auto"
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-text-field
+                    v-model="computedDateFormattedMomentjs"
+                    label="Picker without buttons"
+                    append-icon="mdi-calendar"
+                    readonly
+                    v-bind="attrs"
+                    v-on="on"
+                    outlined
+                  ></v-text-field>
+                </template>
+                <v-date-picker range v-model="rangeDate"></v-date-picker>
+              </v-menu>
+            </v-col>
+            <v-col md="3">
+              <v-btn depressed color="primary" x-large @click="getReport()"
+                >Submit</v-btn
+              >
+            </v-col>
+          </v-row>
+          <!-- range ends report -->
         </div>
-        <v-data-table
-          v-if="report.length > 0"
-          :headers="headers"
-          :items="report"
-          class="elevation-1"
-          disable-pagination
-        >
-          <template v-slot:[`item.customer`]="{ item }">
-            {{ item.customer.firstName }} {{ item.customer.lastName }}
-          </template>
-          <template v-slot:[`item.firmName`]="{ item }">
-            {{ item.customer.firmName || "--" }}
-          </template>
-          <template v-slot:[`item.commodity`]="{ item }">
-            {{ (item.commodity && item.commodity.name) || "--" }}
-          </template>
-          <template v-slot:[`item.category`]="{ item }">
-            {{ (item.category && item.category.name) || "--" }}
-          </template>
-          <template v-slot:[`item.createdAt`]="{ item }">
-            {{ item.createdAt | formatDate }}
-          </template>
-          <template v-slot:[`item.totalQuantity`]="{ item }">
-            {{ item.totalQuantity }} {{ item.packagingType }}
-          </template>
-          <template v-slot:[`item.totalWeight`]="{ item }">
-            {{ item.totalWeight }} tons
-          </template>
-          <template v-slot:[`item.isLoading`]="{ item }">
-            <span v-if="item.isLoading" class="danger--text">Loading</span>
-            <span v-else>in Racks</span>
-          </template>
-          <template v-slot:[`item.actions`]="{ item }">
-            <router-link
-              class="text-decoration-none"
-              :to="{ name: 'inwardDetails', params: { inwardId: item.id } }"
-              ><v-icon small class="mr-2" :id="item.id">
-                mdi-eye
-              </v-icon></router-link
-            >
-            <!-- <v-icon icon small class="mr-2" :id="item.id"> mdi-pencil </v-icon> -->
-          </template>
-        </v-data-table>
-
+        <div v-if="nodata" class="pa-10 text-center grey--text">No data available</div>
         <!-- customer report table -->
-        <section v-if="customerReport.length > 0">
+        <section v-if="isCustomerReport" ref="customerReport">
           <v-toolbar flat>
             <v-toolbar-title class="text-capitalize"
-              >{{ customerReport[0].customer.firstName }},
-              {{ customerReport[0].customer.address }}</v-toolbar-title
+              >{{ report[0].customer.firstName }},
+              {{ report[0].customer.address }}</v-toolbar-title
             >
             <v-divider class="mx-4" inset vertical></v-divider>
             <v-spacer></v-spacer>
-            <v-btn color="primary" depressed>
+            <v-btn color="primary" depressed @click="print">
               <v-icon left dark> mdi-printer </v-icon>
               Print
             </v-btn>
@@ -152,7 +167,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="item in customerReport" :key="item.id">
+                <tr v-for="item in report" :key="item.id">
                   <td class="pa-0" colspan="7">
                     <v-simple-table>
                       <tbody>
@@ -214,6 +229,24 @@
           </v-simple-table>
         </section>
         <!-- customer report table ends -->
+
+        <!-- date Range wise inward report -->
+
+        <inward-report
+          v-if="isRangeReport"
+          :data-list="report"
+          :warehouse="getWareHouse"
+          :dateRange="rangeDate"
+        ></inward-report>
+
+        <!-- date Range wise inward report ends here-->
+        <!-- commodity Report -->
+        <commodity-report
+          v-if="isCommodityReport"
+          :data-list="report"
+        ></commodity-report>
+
+        <!-- commodity Report ends here -->
       </v-card>
     </div>
   </section>
@@ -222,90 +255,26 @@
 <script>
 import inwardServices from "@/services/inward";
 import outwardServices from "@/services/outward";
-// import warehouseMixin from "@/mixins/warehouse";
+import warehouseMixin from "@/mixins/warehouse";
 import customerMixins from "@/mixins/customer";
 import commodityMixin from "@/mixins/commodity";
+import { sendCommandToWorker } from "@/services/print";
 import moment from "moment";
+import InwardReport from "./Components/InwardReport.vue";
+import CommodityReport from "./Components/CommodityReport.vue";
 export default {
+  components: { InwardReport, CommodityReport },
   name: "ReportComponent",
-  mixins: [customerMixins, commodityMixin],
+  mixins: [customerMixins, commodityMixin, warehouseMixin],
   data: () => ({
-    headers: [
-      {
-        text: "lot Number",
-        align: "start",
-        sortable: false,
-        value: "lotNumber",
-      },
-      {
-        text: "Customer",
-        align: "start",
-        sortable: true,
-        value: "customer",
-      },
-      {
-        text: "Firm Name",
-        align: "start",
-        sortable: false,
-        value: "firmName",
-      },
-      {
-        text: "Commodity",
-        align: "start",
-        sortable: false,
-        value: "commodity",
-      },
-      {
-        text: "Category",
-        align: "start",
-        sortable: false,
-        value: "category",
-      },
-      {
-        text: "Inward Date",
-        align: "start",
-        sortable: false,
-        value: "createdAt",
-      },
-      {
-        text: "Total Quantity",
-        align: "start",
-        sortable: true,
-        value: "totalQuantity",
-      },
-      {
-        text: "Total Weight",
-        align: "start",
-        sortable: true,
-        value: "totalWeight",
-      },
-      {
-        text: "Balance",
-        align: "start",
-        sortable: false,
-        value: "balance",
-      },
-      {
-        text: "Loading Status",
-        align: "start",
-        sortable: false,
-        value: "isLoading",
-      },
-      {
-        text: "actions",
-        value: "actions",
-      },
-    ],
-    fromDateMenu: false,
     nodata: false,
-    reportType: "",
-    fromDate: "",
-    lastDate: "",
+    reportType: null,
+    reportTypeOption: null,
     warehouseId: null,
-    reportTypeOption: "",
     customerId: null,
     commodityId: null,
-    customerReport: [],
+    rangePicker: false,
+    rangeDate: [new Date().toISOString().substr(0, 10)],
     reportOption: [
       {
         id: 1,
@@ -318,18 +287,49 @@ export default {
     ],
     report: [],
   }),
+  computed: {
+    dateRangeText() {
+      return this.rangeDate.join(" ~ ");
+    },
+    computedDateFormattedMomentjs() {
+      let dates = [];
+      if (this.rangeDate.length) {
+        dates = this.rangeDate.map((date) => {
+          return moment(date).format("DD-MMMM-YYYY");
+        });
+      }
+      return dates.join(" ~ ");
+    },
+    getWareHouse() {
+      return this.warehouseList.find((i) => i.id === this.warehouseId);
+    },
+    isCustomerReport() {
+      return this.report.length > 0 && this.reportTypeOption === "1";
+    },
+    isCommodityReport() {
+      return this.report.length > 0 && this.reportTypeOption === "2";
+    },
+    isRangeReport() {
+      return this.report.length > 0 && this.reportTypeOption === "3";
+    },
+  },
   created() {
-    // this.getWarehouseLists();
+    this.getWarehouseLists();
     this.getCustomerList();
     this.getCommodityList();
   },
   methods: {
     async getReport() {
+      this.report = [];
       try {
+        let sortedDates = this.rangeDate.sort((a, b) => {
+          return moment(a).diff(b);
+        });
         const rb = {
+          inDateRange: true,
           warehouseId: this.warehouseId,
-          fromDate: moment(this.fromDate).valueOf(),
-          lastDate: moment(this.lastDate).valueOf(),
+          fromDate: moment(sortedDates[0]).valueOf(),
+          lastDate: moment(sortedDates[1]).valueOf(),
         };
         let reponse;
         if (this.reportType === 1) {
@@ -348,6 +348,7 @@ export default {
         }
         if (reponse.status === 404) {
           this.nodata = true;
+          this.report = [];
         }
       } catch (error) {
         console.error(error);
@@ -366,15 +367,18 @@ export default {
         }
         if (reponse.status === 200) {
           this.nodata = false;
-          this.customerReport = reponse.data;
+          this.report = reponse.data;
         }
         if (reponse.status === 404) {
           this.nodata = true;
+          this.report = [];
         }
       } catch (error) {
         console.error(error);
       }
-      // console.log(this.customerId);
+    },
+    reportTypeChanged() {
+      this.report = [];
     },
     async getCommodityReport() {
       const rb = {
@@ -393,10 +397,17 @@ export default {
         }
         if (reponse.status === 404) {
           this.nodata = true;
+          this.report = [];
         }
       } catch (error) {
         console.error(error);
       }
+    },
+    print() {
+      sendCommandToWorker({
+        data: this.$refs.customerReport.querySelector("table").innerHTML,
+        title: "party wise inwardoutward details",
+      });
     },
   },
 };

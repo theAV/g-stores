@@ -6,7 +6,7 @@ class InwardLocation extends Model {
     return super.init(
       {
         weight: DataTypes.FLOAT,
-        quantity: DataTypes.STRING,
+        quantity: DataTypes.BIGINT,
         slots: DataTypes.STRING,
       },
       {
@@ -15,9 +15,6 @@ class InwardLocation extends Model {
         timestamps: false,
         modelName: "inwardLocation",
         defaultScope: {
-          attributes: {
-            exclude: ["createdAt", "updatedAt", "deletedAt"],
-          },
         },
       }
     );

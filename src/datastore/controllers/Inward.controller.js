@@ -10,60 +10,52 @@ class Inward extends BaseController {
       let { deal, locations, form } = requestBody;
       form.inwardDate = getEpoch(form.inwardDate);
       form.lotNumber = generateLotNumber(form.totalQuantity);
-      form.balance = form.totalQuantity;
+      form.balanceQuantity = form.totalQuantity;
+      form.balanceWeight = form.totalWeight;
 
       const result = await models.Inward.create(form, {
         transaction: t,
       });
 
-      if (result) {
-        const inwardId = result.id;
-        const dealWithInwardId = {
-          ...deal,
-          inwardId,
-        };
 
-        await models.InwardDeal.create(dealWithInwardId, { transaction: t });
+      const inwardId = result.id;
+      const dealWithInwardId = {
+        ...deal,
+        inwardId,
+      };
 
-        const promises = locations.map(async (loc) => {
-          try {
-            loc.inwardId = inwardId;
-            await models.InwardLocation.create(loc, { transaction: t });
+      await models.InwardDeal.create(dealWithInwardId, { transaction: t });
 
-            const getStockData = await models.Stock.findOne({
-              where: {
-                rackId: loc.rackId,
-                floorId: loc.floorId,
-              },
-            });
+      const promises = locations.map(async (loc) => {
+        try {
+          loc.inwardId = inwardId;
+          await models.InwardLocation.create(loc, { transaction: t });
 
-            const newQuantity =
-              +getStockData.stockQuantity + +form.totalQuantity;
-            const newWeight = +getStockData.stockWeight + +form.totalWeight;
+          const totalQuantityInNumber = Number(form.totalQuantity);
 
-            return await models.Stock.update(
-              {
-                stockQuantity: newQuantity,
-                stockWeight: newWeight,
-              },
-              {
-                returning: true,
-                where: {
-                  rackId: loc.rackId,
-                },
-              }
-            );
-          } catch (error) {
-            await t.rollback();
-            return error;
-          }
-        });
-        const resolved = await Promise.all(promises);
-        if (resolved) {
-          await t.commit();
-          return this.sendCreateSuccess("Inward Added");
+          await models.Stock.increment("stockQuantity", {
+            by: totalQuantityInNumber,
+            where: {
+              rackId: loc.rackId,
+            },
+            transaction: t,
+          })
+          await models.Stock.increment("stockWeight", {
+            by: form.totalWeight,
+            where: {
+              rackId: loc.rackId,
+            },
+            transaction: t,
+          });
+        } catch (error) {
+          await t.rollback();
+          return error;
         }
-      }
+      });
+      await Promise.all(promises);
+      await t.commit();
+      return this.sendCreateSuccess("Inward Added");
+
     } catch (error) {
       await t.rollback();
       return error;
@@ -142,7 +134,7 @@ class Inward extends BaseController {
           {
             model: models.Inward,
             where: {
-              balance: {
+              balanceQuantity: {
                 [models.Sequelize.Op.gt]: 0,
               },
             },
@@ -150,18 +142,15 @@ class Inward extends BaseController {
               models.Commodity,
               models.Category,
               {
+                model: models.InwardDeal,
+                include: [models.DealType],
+              },
+              {
                 model: models.InwardLocation,
                 include: [models.Chamber, models.Floor, models.Rack],
               },
             ],
           },
-          // models.Commodity,
-          // models.Category,
-          // {
-          //   model: models.InwardLocation,
-          //   // todo: move below include to it's model
-          //   include: [models.Chamber, models.Floor, models.Rack],
-          // },
         ],
       });
       if (isEmpty(result)) {
@@ -174,14 +163,18 @@ class Inward extends BaseController {
   }
 
   async GetReportByDate(requestBody) {
-    const { fromDate, lastDate, inDateRange, customerId, commodityId } =
+    const { fromDate, lastDate, inDateRange, customerId, commodityId, warehouseId } =
       requestBody;
     let whereClause = {};
     // if data required in a date range
+    let locationWhere = {};
     if (inDateRange) {
       whereClause.inwardDate = {
         [models.Sequelize.Op.between]: [fromDate, lastDate],
       };
+      locationWhere = {
+        warehouseId
+      }
     }
     if (customerId) {
       whereClause = {
@@ -205,11 +198,9 @@ class Inward extends BaseController {
           models.Category,
           {
             model: models.Outward,
-            // attributes: ["id", "date", "outwardLocations"],
             include: [
               {
                 model: models.OutwardLocation,
-                attributes: ["id", "inwardLocationId", "quantity", "weight"],
               },
             ],
           },
@@ -219,8 +210,8 @@ class Inward extends BaseController {
           },
           {
             model: models.InwardLocation,
-            // where: { warehouseId },
             include: [models.Chamber, models.Floor, models.Rack],
+            where: locationWhere
           },
         ],
       });

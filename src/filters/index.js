@@ -1,5 +1,5 @@
 import Vue from "vue";
-import { maximumFractionDigits } from "@/utility";
+import { maximumFractionDigits as maxDigit } from "@/utility";
 import moment from "moment";
 
 const filters = {
@@ -17,8 +17,17 @@ const filters = {
     if (!value) return "";
     return moment(value).format(format);
   },
+  kgToQuintal: (value) => {
+    const num = (Number(value) / 100);
+    return Math.floor(num * 100) / 100;
+  },
   maximumFractionDigits: (value) => {
-    return maximumFractionDigits(value);
+    if (!value) return '';
+    return value
+      .toLocaleString(undefined, {
+        maximumFractionDigits: 2,
+      })
+      .replace(/,/g, "");
   },
 };
 for (let key in filters) {

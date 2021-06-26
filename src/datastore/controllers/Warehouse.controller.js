@@ -1,34 +1,58 @@
 import models from "../models";
 import { responder, isEmpty } from "@/datastore/helper";
 import BaseController from "./Base.controller";
-/**
- * TODO: code optimization / improve performace
- * warehouse controller
- * all the actions handle here
- */
+
 class Warehouse extends BaseController {
   async Get() {
     try {
       const result = await models.Warehouse.findAll({
-        include: {
-          model: models.Chamber,
-          required: false,
-          attributes: ["id", "name", "capacity"],
-          include: {
-            model: models.Floor,
+        include: [
+          {
+            model: models.Stock,
+          },
+          {
+            model: models.Chamber,
             required: false,
             attributes: ["id", "name", "capacity"],
-            include: {
-              model: models.Rack,
-              required: false,
-              attributes: ["id", "name", "capacity"],
-              include: {
-                model: models.InwardLocation,
-                required: false,
+            include: [
+              {
+                model: models.Stock,
+                // attributes: [
+                //   [models.sequelize.fn('sum', models.sequelize.col('stockQuantity')), 'stock_quantity'],
+                //   [models.sequelize.fn('sum', models.sequelize.col('stockWeight')), 'stock_quantity'],
+                // ]
               },
-            },
+              {
+                model: models.Floor,
+                required: false,
+                attributes: ["id", "name", "capacity"],
+                include: [
+                  {
+                    model: models.Stock,
+                    // attributes: [
+                    //   [models.sequelize.fn('sum', models.sequelize.col('stockQuantity')), 'stock_quantity'],
+                    //   [models.sequelize.fn('sum', models.sequelize.col('stockWeight')), 'stock_quantity'],
+                    // ],
+                    // raw: true,
+
+                  },
+                  {
+                    model: models.Rack,
+                    required: false,
+                    attributes: ["id", "name", "capacity"],
+                    include: {
+                      model: models.Stock,
+                      // attributes: [
+                      //   [models.sequelize.fn('sum', models.sequelize.col('stockQuantity')), 'stockQuantity'],
+                      //   [models.sequelize.fn('sum', models.sequelize.col('stockWeight')), 'stockWeight'],
+                      // ]
+                    },
+                  },
+                ]
+              },
+            ]
           },
-        },
+        ],
       });
       if (isEmpty(result)) {
         return this.noDataResponse();
@@ -41,12 +65,8 @@ class Warehouse extends BaseController {
   }
   async Post(requesBody) {
     try {
-      const response = await models.Warehouse.create(requesBody);
-      if (response) {
-        return responder("SUCCESS", {
-          data: { message: "Record added successfully" },
-        });
-      }
+      await models.Warehouse.create(requesBody);
+      return this.sendCreateSuccess("Record added successfully");
     } catch (error) {
       return error;
     }

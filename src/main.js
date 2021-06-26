@@ -8,10 +8,9 @@ import "@fortawesome/fontawesome-free/css/all.css";
 import "@mdi/font/css/materialdesignicons.css";
 import "./filters";
 import "./styles/styles.scss";
-// import { Titlebar, Color } from "custom-electron-titlebar";
-// new Titlebar({
-//   backgroundColor: Color.fromHex("#ECECEC"),
-// });
+import VueHtmlToPaper from "vue-html-to-paper";
+
+Vue.use(VueHtmlToPaper);
 Vue.use(VeeValidate, {
   mode: "eager",
 });

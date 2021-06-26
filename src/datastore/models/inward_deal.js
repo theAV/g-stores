@@ -12,7 +12,7 @@ class InwardDeal extends Model {
           type: DataTypes.BIGINT,
         },
         dealRate: {
-          type: DataTypes.STRING,
+          type: DataTypes.FLOAT,
           allowNull: false,
         },
         isActive: {

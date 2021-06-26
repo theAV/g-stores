@@ -27,3 +27,4 @@ export const maximumFractionDigits = (value) => {
 };
 
 export const getTodayDate = () => moment().format("YYYY-MM-DD");
+

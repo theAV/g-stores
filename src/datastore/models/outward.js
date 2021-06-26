@@ -12,9 +12,6 @@ class Outward extends Model {
         paranoid: true,
         modelName: "outward",
         defaultScope: {
-          attributes: {
-            exclude: ["updatedAt", "deletedAt"],
-          },
           order: [["createdAt", "DESC"]],
         },
         hooks: {

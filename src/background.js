@@ -4,6 +4,8 @@ import { app, protocol, BrowserWindow, ipcMain } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 import BackupService from "./datastore/backup";
+const path = require("path");
+const os = require("os");
 const isDevelopment = process.env.NODE_ENV !== "production";
 
 // Scheme must be registered before the app is ready
@@ -12,6 +14,7 @@ protocol.registerSchemesAsPrivileged([
 ]);
 
 async function createWindow() {
+  let printWindow;
   // Create the browser window.
   const win = new BrowserWindow({
     show: false,
@@ -37,6 +40,40 @@ async function createWindow() {
   win.show();
   ipcMain.handle("CREATEBACKUP", async () => {
     return await BackupService.attach(win);
+  });
+  ipcMain.on("print-window", (event, content) => {
+    if (!printWindow) {
+      printWindow = new BrowserWindow({
+        parent: win,
+        webPreferences: {
+          nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
+          contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION,
+        }
+      });
+      const fileLocation = path.join(__static, 'print.html');
+      printWindow.loadFile(fileLocation);
+      printWindow.maximize();
+      // cleanup
+      printWindow.on("closed", () => {
+        printWindow = null;
+      });
+      printWindow.webContents.on("did-finish-load", function () {
+        printWindow.webContents.send("printReport", content);
+      });
+    }
+  });
+  ipcMain.on("readyToPrint", event => {
+    const pdfPath = path.join(os.tmpdir(), "print.pdf");
+    var options = {
+      pageSize: {
+        height: 210000,
+        width: 148000
+      },
+    };
+    printWindow.webContents.print(options, (success, errorType) => {
+      if (!success) console.log(errorType);
+      printWindow.close();
+    });
   });
 }
 app.allowRendererProcessReuse = false;

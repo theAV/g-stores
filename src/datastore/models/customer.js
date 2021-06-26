@@ -26,9 +26,7 @@ class Customer extends Model {
         paranoid: true,
         modelName: "customer",
         defaultScope: {
-          attributes: {
-            exclude: ["createdAt", "updatedAt", "deletedAt"],
-          },
+          order: [["firstName", "DESC"]],
         },
       }
     );

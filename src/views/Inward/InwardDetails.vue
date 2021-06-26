@@ -5,7 +5,7 @@
         ><v-icon class="mr-1">mdi-keyboard-backspace</v-icon> Back</v-btn
       >
       <v-spacer></v-spacer>
-      <v-btn color="primary" depressed
+      <v-btn color="primary" depressed @click="getPrint()"
         ><v-icon class="mr-1">mdi-printer</v-icon> Print</v-btn
       >
     </div>
@@ -19,103 +19,103 @@
             <div>{{ inwardDetails.lotNumber }}</div>
           </v-col> -->
           <v-col md="3">
-            <div class="caption font-weight-thin">Customer Name</div>
-            <div class="font-weight-bold">{{ getCustomerName }}</div>
+            <div class="caption font-weight-regular">Customer Name</div>
+            <div class="font-weight-medium">{{ getCustomerName }}</div>
           </v-col>
           <v-col md="3">
-            <div class="caption font-weight-thin">Inward Date</div>
-            <div class="font-weight-bold">
+            <div class="caption font-weight-regular">Inward Date</div>
+            <div class="font-weight-medium">
               {{ inwardDetails.inwardDate | formatDate }}
             </div>
           </v-col>
           <v-col md="3">
-            <div class="caption font-weight-thin">Inward commodity</div>
-            <div class="font-weight-bold">
+            <div class="caption font-weight-regular">Inward commodity</div>
+            <div class="font-weight-medium">
               {{ inwardDetails.commodity.name }}
             </div>
           </v-col>
           <v-col md="3">
-            <div class="caption font-weight-thin">Inward category</div>
-            <div class="font-weight-bold">
+            <div class="caption font-weight-regular">Inward category</div>
+            <div class="font-weight-medium">
               {{ inwardDetails.category.name }}
             </div>
           </v-col>
           <v-col md="3">
-            <div class="caption font-weight-thin">Total Quantity</div>
-            <div class="font-weight-bold">
+            <div class="caption font-weight-regular">Total Quantity</div>
+            <div class="font-weight-medium">
               {{ inwardDetails.totalQuantity }}
               {{ inwardDetails.packagingType }}
             </div>
           </v-col>
           <v-col md="3">
-            <div class="caption font-weight-thin">Average Weight</div>
-            <div class="font-weight-bold">
+            <div class="caption font-weight-regular">Average Weight</div>
+            <div class="font-weight-medium">
               {{ inwardDetails.averageWeight }} kg
             </div>
           </v-col>
           <v-col md="3">
-            <div class="caption font-weight-thin">Total Weight</div>
-            <div class="font-weight-bold">
+            <div class="caption font-weight-regular">Total Weight</div>
+            <div class="font-weight-medium">
               {{ inwardDetails.totalWeight }} quintal
             </div>
           </v-col>
           <v-col md="3">
-            <div class="caption font-weight-thin">Current Balance</div>
-            <div class="font-weight-bold">
+            <div class="caption font-weight-regular">Current Balance</div>
+            <div class="font-weight-medium">
               {{ inwardDetails.balance }} {{ inwardDetails.packagingType }}
             </div>
           </v-col>
           <v-col md="3">
-            <div class="caption font-weight-thin">Deal Type</div>
-            <div class="font-weight-bold">
+            <div class="caption font-weight-regular">Deal Type</div>
+            <div class="font-weight-medium">
               {{ activeDeal.dealType.name }}
             </div>
           </v-col>
           <template v-if="activeDeal.dealType.id === 1">
             <v-col md="3">
-              <div class="caption font-weight-thin">
+              <div class="caption font-weight-regular">
                 {{ activeDeal.dealType.name }} Start
               </div>
-              <div class="font-weight-bold">
+              <div class="font-weight-medium">
                 {{ activeDeal.startDate | formatDate }}
               </div>
             </v-col>
             <v-col md="3">
-              <div class="caption font-weight-thin">
+              <div class="caption font-weight-regular">
                 {{ activeDeal.dealType.name }} End
               </div>
-              <div class="font-weight-bold">
+              <div class="font-weight-medium">
                 {{ activeDeal.endDate | formatDate }}
               </div>
             </v-col>
           </template>
           <template v-if="activeDeal.dealType.id === 2">
             <v-col md="3">
-              <div class="caption font-weight-thin">
+              <div class="caption font-weight-regular">
                 {{ activeDeal.dealType.name }} Start
               </div>
-              <div class="font-weight-bold">
+              <div class="font-weight-medium">
                 {{ activeDeal.startDate | formatDate("MMMM") }}
               </div>
             </v-col>
             <v-col md="3">
-              <div class="caption font-weight-thin">
+              <div class="caption font-weight-regular">
                 {{ activeDeal.dealType.name }} End
               </div>
-              <div class="font-weight-bold">
+              <div class="font-weight-medium">
                 {{ activeDeal.endDate | formatDate("MMMM") }}
               </div>
             </v-col>
           </template>
           <v-col md="3">
-            <div class="caption font-weight-thin">Vehicle number</div>
-            <div class="font-weight-bold">
+            <div class="caption font-weight-regular">Vehicle number</div>
+            <div class="font-weight-medium">
               {{ inwardDetails.vehicleNo || "NA" }}
             </div>
           </v-col>
           <v-col md="3">
-            <div class="caption font-weight-thin">Driver Name</div>
-            <div class="font-weight-bold">
+            <div class="caption font-weight-regular">Driver Name</div>
+            <div class="font-weight-medium">
               {{ inwardDetails.driverName || "NA" }}
             </div>
           </v-col>
@@ -179,6 +179,9 @@ export default {
     this.inwardServices();
   },
   methods: {
+    getPrint() {
+      window.print();
+    },
     goBack() {
       this.$router.go(-1);
     },

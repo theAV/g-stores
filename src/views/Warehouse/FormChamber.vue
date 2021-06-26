@@ -48,7 +48,6 @@
                 :error-messages="errors"
                 :hint="`can not be exceeded more than  ${sourceCapacity} ton`"
                 :disabled="!sourceCapacity"
-                persistent-hint
                 label="Please enter chamber capacity"
                 type="number"
                 outlined
@@ -147,9 +146,11 @@ export default {
   mixins: [baseMixin, warehouseMixin],
   methods: {
     getMaxCapacity() {
-      const overAllCapacity = this.warehouseList.filter((warehouse) => {
+      const selectedWarehouse = this.warehouseList.find((warehouse) => {
         return warehouse.id === this.form.warehouseId;
-      })[0]?.capacity;
+      });
+      let overAllCapacity =
+        selectedWarehouse.capacity - selectedWarehouse.occupied;
       let occupiedCapacity = 0;
       if (this.hasChamber) {
         occupiedCapacity = this.chamber.reduce((acc, value) => {
@@ -184,11 +185,11 @@ export default {
       this.submitting = true;
       try {
         const response = await chamberServices.post(this.chamber);
-        if (response) {
-          this.showSnackBar(response.data.message);
-        }
         if (response instanceof Error) {
           throw response;
+        }
+        if (response.status === 200) {
+          this.showSnackBar(response.data.message);
         }
       } catch (error) {
         console.log(error);

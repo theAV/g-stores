@@ -17,9 +17,7 @@ class Commodity extends Model {
         paranoid: true,
         modelName: "commodity",
         defaultScope: {
-          attributes: {
-            exclude: ["createdAt", "updatedAt", "deletedAt"],
-          },
+          order: [["name", "DESC"]],
         },
       }
     );

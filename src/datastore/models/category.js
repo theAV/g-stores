@@ -16,9 +16,7 @@ class Category extends Model {
         paranoid: true,
         modelName: "category",
         defaultScope: {
-          attributes: {
-            exclude: ["createdAt", "updatedAt", "deletedAt"],
-          },
+          order: [["name", "DESC"]],
         },
       }
     );

@@ -194,9 +194,10 @@ export default {
   mixins: [baseMixin, warehouseMixin],
   methods: {
     getMaxCapacity() {
-      const overAllCapacity = this.floorList.filter((floor) => {
+      const selectedFloor = this.floorList.find((floor) => {
         return floor.id === this.form.floorId;
-      })[0]?.capacity;
+      });
+      let overAllCapacity = selectedFloor.capacity - selectedFloor.occupied;
       let occupiedCapacity = 0;
       if (this.hasFloor) {
         occupiedCapacity = this.rack.reduce((acc, value) => {
@@ -253,6 +254,7 @@ export default {
     },
     async createRack() {
       this.submitting = true;
+      console.log(this.rack);
       try {
         const response = await rackServices.post(this.rack);
         if (response instanceof Error) {

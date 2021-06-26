@@ -1,6 +1,7 @@
 import models from "../models";
 import { responder, isEmpty } from "@/datastore/helper";
-class Floor {
+import BaseController from "./Base.controller";
+class Floor extends BaseController {
   async Get(requesBody) {
     try {
       let where = {};
@@ -11,22 +12,27 @@ class Floor {
         where,
       });
       if (isEmpty(result)) {
-        return responder("SUCCESS", { data: { error: "No Record found" } });
+        return this.noDataResponse();
       }
-      const data = result.map((el) => el.get({ plain: true }));
-      return responder("SUCCESS", { data });
+      return this.sendDataResponse(result, "SUCCESS", true);
     } catch (error) {
       return error;
     }
   }
   async Post(requesBody) {
+    const t = await models.sequelize.transaction();
     try {
-      const result = await models.Floor.bulkCreate(requesBody);
-      if (result) {
-        return responder("SUCCESS", {
-          data: { message: "Record added successfully" },
+      const promiseQuery = requesBody.map(async (item) => {
+        await models.Floor.create(item, {
+          transaction: t,
         });
-      }
+        const capacity = Number(item.capacity);
+        await models.Chamber.increment('occupied', { by: capacity, where: { id: item.chamberId }, transaction: t, })
+      })
+
+      await Promise.all(promiseQuery);
+      await t.commit();
+      return this.sendCreateSuccess("Record added successfully");
     } catch (error) {
       return error;
     }

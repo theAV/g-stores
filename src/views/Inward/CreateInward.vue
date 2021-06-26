@@ -234,7 +234,6 @@
                     v-model="form.totalWeight"
                     :error-messages="errors"
                     :disabled="!form.totalQuantity"
-                    @input="getAverageWeight()"
                     type="number"
                     label="Total weight*"
                     suffix="quintal"
@@ -244,11 +243,7 @@
                 </validation-provider>
               </v-col>
               <v-col md="2">
-                <validation-provider
-                  v-slot="{ errors }"
-                  name="average weight"
-                  rules="required|decimal"
-                >
+                <validation-provider v-slot="{ errors }" name="average weight">
                   <v-text-field
                     v-model="form.averageWeight"
                     :error-messages="errors"
@@ -257,7 +252,6 @@
                     type="number"
                     label="Average weight*"
                     outlined
-                    required
                     suffix="kg"
                   ></v-text-field>
                 </validation-provider>
@@ -303,6 +297,16 @@
                 ></v-text-field>
               </v-col>
               <v-col md="2">
+                <v-btn
+                  :disabled="!form.warehouseId || !form.totalQuantity  || !form.totalWeight || isLocationAdded"
+                  x-large
+                  depressed
+                  color="primary"
+                  @click="showLocationSheet"
+                  >Add Location</v-btn
+                >
+              </v-col>
+              <v-col md="2">
                 <v-checkbox
                   v-model="form.isLoading"
                   label="Loading?"
@@ -342,7 +346,7 @@
             >
             <v-btn
               type="submit"
-              :disabled="invalid"
+              :disabled="invalid || !isLocationAdded"
               color="primary"
               width="180"
               depressed
@@ -352,15 +356,14 @@
           </v-card-actions>
         </v-form>
       </validation-observer>
-      <!-- <v-bottom-sheet v-model="locationSheet" persistent>
-        <v-sheet class="text-center" height="200px"> -->
-      <add-location-form
-        :quantity="form.totalQuantity"
-        :weight="form.totalWeight"
-        :warehouseId="form.warehouseId"
-      ></add-location-form>
-      <!-- </v-sheet>
-      </v-bottom-sheet> -->
+
+      <v-bottom-sheet v-model="locationSheet" persistent>
+        <add-location-form
+          :quantity="form.totalQuantity"
+          :weight="form.totalWeight"
+          :warehouseId="form.warehouseId"
+        ></add-location-form>
+      </v-bottom-sheet>
     </v-card>
   </section>
 </template>
@@ -371,12 +374,7 @@ import commodityMixin from "@/mixins/commodity";
 import warehouseMixin from "@/mixins/warehouse";
 import inwardServices from "@/services/inward";
 import baseMixin from "@/mixins/base";
-import {
-  getTodayDate,
-  convertToQuintal,
-  convertToKG,
-  maximumFractionDigits,
-} from "@/utility";
+import { getTodayDate, convertToQuintal } from "@/utility";
 import AddLocationForm from "./components/AddLocationForm";
 import { ValidationObserver, ValidationProvider } from "vee-validate";
 
@@ -422,10 +420,13 @@ export default {
         name: "monthly",
       },
     ],
+    isLocationAdded: false,
   }),
   provide: function () {
     return {
       getLocationTable: this.getLocationTable,
+      closeLocationSheet: this.closeLocationSheet,
+      locationAdded: this.locationAdded,
     };
   },
   mixins: [baseMixin, customerMixin, commodityMixin, warehouseMixin],
@@ -439,7 +440,7 @@ export default {
     async onSubmit() {
       try {
         this.$refs.observer.validate().then(async (valid) => {
-          if (!valid) return;
+          if (!valid && !this.isLocationAdded) return;
           const { warehouseId, ...rest } = this.form;
           const locations = this.locations.map((item) => {
             return {
@@ -473,8 +474,8 @@ export default {
             locations,
             deal,
           };
+          console.log(rb);
           const response = await inwardServices.post(rb);
-          console.log(response);
           if (response instanceof Error) throw response;
           if (response.status === 200) {
             this.showSnackBar(response.data.message);
@@ -498,14 +499,15 @@ export default {
       this.form.totalWeight = null;
       this.form.averageWeight = null;
     },
-    getAverageWeight() {
-      const { totalQuantity, totalWeight } = this.form;
-      const aw = convertToKG(Number(totalWeight)) / totalQuantity;
-      this.form.averageWeight = maximumFractionDigits(aw);
-    },
     showLocationSheet() {
       if (this.locationSheet) return;
       this.locationSheet = true;
+    },
+    locationAdded() {
+      this.isLocationAdded = true;
+    },
+    closeLocationSheet() {
+      this.locationSheet = false;
     },
     clearAll() {
       this.form = {
@@ -523,6 +525,7 @@ export default {
         vehicleNo: "",
         marka: "",
       };
+      this.isLocationAdded = false;
       this.$refs.observer.reset();
       this.locations = [];
       this.contract = {};

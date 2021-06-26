@@ -170,9 +170,10 @@ export default {
   mixins: [baseMixin, warehouseMixin],
   methods: {
     getMaxCapacity() {
-      const overAllCapacity = this.chamberList.filter((chamber) => {
+      const selectedChamber = this.chamberList.find((chamber) => {
         return chamber.id === this.form.chamberId;
-      })[0]?.capacity;
+      });
+      let overAllCapacity = selectedChamber.capacity - selectedChamber.occupied;
       let occupiedCapacity = 0;
       if (this.hasFloor) {
         occupiedCapacity = this.floorList.reduce((acc, value) => {

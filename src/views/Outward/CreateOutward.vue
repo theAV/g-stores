@@ -26,120 +26,189 @@
           <v-col md="4">
             <v-text-field
               type="date"
-              v-model="form.date"
-              label="Select Date"
+              v-model="outwardDate"
+              label="Select Outward Date"
               outlined
               required
             ></v-text-field>
           </v-col>
         </v-row>
-        <v-simple-table
-          v-if="selectedUserId && customerInwardDetails.inwards.length"
-        >
-          <template v-slot:default>
-            <thead>
-              <tr>
-                <th class="text-left">Lot Number</th>
-                <th class="text-left">Commodit</th>
-                <th class="text-left">Category</th>
-                <th class="text-left">Balance</th>
-                <!-- <th class="text-left">Quantity</th>
-                <th class="text-left">Wieght</th> -->
-                <th class="text-left"></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="item in customerInwardDetails.inwards"
-                :class="{ active: item.id === currentRow }"
-                :key="item.id"
-              >
-                <td>{{ item.lotNumber }}</td>
-                <td>{{ item.commodity && item.commodity.name }}</td>
-                <td>{{ item.category && item.category.name }}</td>
-                <td>
-                  {{ item.balance }}
-                </td>
-                <!-- <td>{{ item.totalQuantity }} {{ item.packagingType }}</td>
-                <td>{{ item.totalWeight }}</td> -->
-                <td>
-                  <v-btn
-                    :disabled="!item.inwardLocations.length"
-                    depressed
-                    color="success"
-                    @click="getOutwardLocation(item.id)"
-                    >Outward</v-btn
-                  >
-                </td>
-              </tr>
-            </tbody>
-          </template>
-        </v-simple-table>
       </v-card-text>
     </v-card>
-    <section class="mt-5" v-if="hasLocationForm">
-      <v-card>
-        <v-form
-          class="pa-7 text--primary text-capitalize"
-          ref="outwardForm"
-          @submit.prevent="submitOutwardForm()"
-        >
-          <v-row v-for="(item, i) in outwardForm" :key="i">
-            <v-col md="2">
-              <v-text-field
-                label="Chamber Name"
-                v-model="item.chamber.name"
-                outlined
-                readonly
-              ></v-text-field>
-            </v-col>
-            <v-col md="2">
-              <v-text-field
-                label="Floor Name"
-                v-model="item.floor.name"
-                outlined
-                readonly
-              ></v-text-field>
-            </v-col>
-            <v-col md="2">
-              <v-text-field
-                label="rack Name"
-                v-model="item.rack.name"
-                outlined
-                readonly
-              ></v-text-field>
-            </v-col>
-            <v-col md="2">
-              <v-text-field
-                label="Weight"
-                v-model="item.weight"
-                outlined
-              ></v-text-field>
-            </v-col>
-            <v-col md="2">
-              <v-text-field
-                label="Quantity"
-                v-model="item.quantity"
-                outlined
-                :suffix="locationForm.packagingType"
-              ></v-text-field>
-            </v-col>
-            <v-col md="2">
-              <v-btn
-                color="danger"
-                @click="removeOutwardRow(i)"
-                x-large
-                dark
-                depressed
-                >Remove</v-btn
+    <section class="mt-7" v-if="customerInwardDetails.inwards">
+      <v-data-table
+        :headers="headers"
+        :items="customerInwardDetails.inwards"
+        :single-expand="singleExpand"
+        :expanded.sync="expanded"
+        item-key="id"
+        show-expand
+        class="elevation-1"
+        item-class="elevation-0"
+        @click:row="(item, slot) => clicked(item, slot)"
+      >
+        <template v-slot:expanded-item="{ headers, item }">
+          <td :colspan="headers.length">
+            <div class="py-7">
+              <v-divider></v-divider>
+              <v-data-table
+                v-model="selected"
+                :headers="locationHeader"
+                :items="item.inwardLocations"
+                item-key="id"
+                show-select
+                hide-default-footer
               >
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-btn type="submit" color="primary" depressed>Submit</v-btn>
-          </v-row>
-        </v-form>
-      </v-card>
+                <template v-slot:[`item.chamber`]="{ item }">
+                  {{ item.chamber.name }}
+                </template>
+                <template v-slot:[`item.floor`]="{ item }">
+                  {{ item.floor.name }}
+                </template>
+                <template v-slot:[`item.rack`]="{ item }">
+                  {{ item.rack.name }}
+                </template>
+                <template v-slot:[`item.slots`]="{ item }">
+                  {{ item.slots }}
+                </template>
+              </v-data-table>
+              <v-dialog v-model="dialog" width="800">
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn depressed color="primary" v-bind="attrs" v-on="on"
+                    >Outward</v-btn
+                  >
+                </template>
+                <v-form
+                  class="text--primary text-capitalize"
+                  ref="outwardForm"
+                  @submit.prevent="submitOutwardForm()"
+                >
+                  <v-card>
+                    <v-card-title class="text-h6 grey lighten-2">
+                      Outward Form for {{ item.receiptNumber }}
+                    </v-card-title>
+
+                    <div class="pa-7">
+                      <v-row v-for="loc in selected" :key="loc.id">
+                        <v-col md="12">
+                          <div>
+                            Location: {{ loc.chamber.name }} ->
+                            {{ loc.floor.name }} -> {{ loc.rack.name }}
+                            {{ loc.slots }}
+                          </div>
+                        </v-col>
+                        <input
+                          type="hidden"
+                          name="inwardId"
+                          v-model="item.id"
+                        />
+                        <input type="hidden" v-model="item.id" />
+                        <v-col md="6">
+                          <v-text-field
+                            label="Quantity"
+                            v-model="loc.quantity"
+                            outlined
+                            :suffix="item.packagingType"
+                          ></v-text-field>
+                        </v-col>
+                        <v-col md="6">
+                          <v-text-field
+                            label="Weight"
+                            v-model="loc.weight"
+                            outlined
+                          ></v-text-field>
+                        </v-col>
+                      </v-row>
+                    </div>
+
+                    <v-divider></v-divider>
+
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn type="submit" color="primary" text> Submit </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-form>
+              </v-dialog>
+              <v-divider></v-divider>
+            </div>
+
+            <!-- <v-form
+              class="pa-7 text--primary text-capitalize"
+              ref="outwardForm"
+              @submit.prevent="submitOutwardForm()"
+            >
+              <v-row v-for="loc in item.inwardLocations" :key="loc.id">
+                <v-col md="1">
+                  <v-checkbox v-model="loc.id" value="false"></v-checkbox>
+                </v-col>
+                <v-col md="2">
+                  <v-text-field
+                    label="Chamber Name"
+                    v-model="loc.chamber.name"
+                    :disabled="!loc.id"
+                    outlined
+                    readonly
+                  ></v-text-field>
+                </v-col>
+                <v-col md="2">
+                  <v-text-field
+                    label="Floor Name"
+                    v-model="loc.floor.name"
+                    outlined
+                    readonly
+                  ></v-text-field>
+                </v-col>
+                <v-col md="2">
+                  <v-text-field
+                    label="rack Name"
+                    v-model="loc.rack.name"
+                    outlined
+                    readonly
+                  ></v-text-field>
+                </v-col>
+                <v-col md="1">
+                  <v-text-field
+                    label="Slots"
+                    v-model="loc.slots"
+                    outlined
+                  ></v-text-field>
+                </v-col>
+                <v-col md="2">
+                  <v-text-field
+                    label="Quantity"
+                    v-model="loc.quantity"
+                    outlined
+                    :suffix="locationForm.packagingType"
+                  ></v-text-field>
+                </v-col>
+                <v-col md="2">
+                  <v-text-field
+                    label="Weight"
+                    v-model="loc.weight"
+                    outlined
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-btn type="submit" color="primary" depressed>Submit</v-btn>
+              </v-row>
+            </v-form> -->
+          </td>
+        </template>
+        <template v-slot:[`item.inwardDate`]="{ item }">
+          {{ item.inwardDate | formatDate }}
+        </template>
+        <template v-slot:[`item.commodity`]="{ item }">
+          {{ item.commodity.name || "--" }}
+        </template>
+        <template v-slot:[`item.category`]="{ item }">
+          {{ item.category.name || "--" }}
+        </template>
+        <template v-slot:[`item.inwardDeals`]="{ item }">
+          {{ item.inwardDeals.find((row) => row.isActive).dealType.name }}
+        </template>
+      </v-data-table>
     </section>
   </section>
 </template>
@@ -152,6 +221,11 @@ import baseMixin from "@/mixins/base";
 export default {
   name: "CreateOutward",
   data: () => ({
+    dialog: false,
+    expanded: [],
+    singleExpand: true,
+    singleSelect: false,
+    selected: [],
     valid: false,
     form: {
       date: "",
@@ -163,12 +237,100 @@ export default {
     currentRow: null,
     hasLocationForm: false,
     outwardForm: [],
+    headers: [
+      {
+        text: "Date",
+        align: "start",
+        sortable: false,
+        value: "inwardDate",
+      },
+      {
+        text: "R. No.",
+        align: "start",
+        sortable: false,
+        value: "receiptNumber",
+      },
+      {
+        text: "Commodity",
+        align: "start",
+        sortable: false,
+        value: "commodity",
+      },
+      {
+        text: "Category",
+        align: "start",
+        sortable: false,
+        value: "category",
+      },
+      {
+        text: "Deal type",
+        align: "start",
+        sortable: false,
+        value: "inwardDeals",
+      },
+      {
+        text: "Packaging",
+        align: "start",
+        value: "packagingType",
+      },
+      {
+        text: "Balance Quantity",
+        align: "end",
+        sortable: true,
+        value: "balanceQuantity",
+      },
+      {
+        text: "Balance Weight (Quintal)",
+        align: "end",
+        sortable: true,
+        value: "balanceWeight",
+      },
+    ],
+    locationHeader: [
+      {
+        text: "Chamber Name",
+        align: "start",
+        sortable: false,
+        value: "chamber",
+      },
+      {
+        text: "Floor Name",
+        align: "start",
+        sortable: false,
+        value: "floor",
+      },
+      {
+        text: "Slots",
+        align: "start",
+        sortable: false,
+        value: "slots",
+      },
+      {
+        text: "Quantity",
+        align: "start",
+        sortable: false,
+        value: "quantity",
+      },
+      {
+        text: "Weight",
+        align: "start",
+        sortable: false,
+        value: "weight",
+      },
+    ],
+    currentInward:{},
+    outwardDate: "",
   }),
   created() {
     this.getInwardByBalance();
   },
   mixins: [baseMixin],
   methods: {
+    clicked(item, slot) {
+      this.selected = [];
+      slot.expand(!slot.isExpanded);
+      this.currentInward = item;
+    },
     removeOutwardRow(id) {
       this.outwardForm = this.outwardForm.filter((row, i) => {
         return i !== id;
@@ -176,7 +338,7 @@ export default {
     },
     async refresh() {
       await this.getInwardByBalance();
-      await this.customerSearch();
+      this.customerSearch();
       this.hasLocationForm = false;
       this.currentRow = null;
     },
@@ -184,7 +346,6 @@ export default {
       try {
         this.customerList = [];
         const response = await inwardServices.getInwardByBalance();
-        console.log(response);
         if (response instanceof Error) {
           throw response;
         }
@@ -204,17 +365,14 @@ export default {
     },
     async submitOutwardForm() {
       try {
-        const balance = +this.locationForm.balance;
+        const inwardId = this.currentInward.id;
+        const outwardDate = this.outwardDate;
         const requestBody = {
-          inwardId: this.currentRow,
-          date: this.form.date,
+          inwardId,
+          date: outwardDate
         };
 
-        const new_balance = this.outwardForm.reduce((acc, value) => {
-          return +acc + +value.quantity;
-        }, 0);
-
-        const location = this.outwardForm.map((row) => {
+        const location = this.selected.map((row) => {
           const { weight, quantity, id } = row;
           return {
             weight,
@@ -223,7 +381,6 @@ export default {
           };
         });
         requestBody.location = location;
-        requestBody.balance = balance - new_balance;
         console.log(requestBody);
         const response = await outwardServices.post(requestBody);
         if (response instanceof Error) {
@@ -232,6 +389,7 @@ export default {
         if (response.status === 200) {
           this.showSnackBar(response.data.message);
           this.refresh();
+          this.dialog = false;
         }
         console.log(response);
       } catch (error) {

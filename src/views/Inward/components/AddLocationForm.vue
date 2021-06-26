@@ -1,17 +1,17 @@
 <template>
   <v-card-text class="px-7 pb-7 grey lighten-5">
-    <div class="d-flex">
-      <div class="title mb-2">Location</div>
+    <div class="d-flex align-center mb-2">
+      <div class="title">Location</div>
       <v-spacer></v-spacer>
       <div class="orange--text">
         <span class="mx-2" v-if="sourceQuantity"
-          >Remaining quantity:
-          {{ sourceQuantity | maximumFractionDigits }}</span
+          >Remaining quantity: {{ sourceQuantity }}</span
         >
         <span class="mx-2" v-if="sourceWeight"
-          >Remaining weight: {{ sourceWeight | maximumFractionDigits }}</span
+          >Remaining weight: {{ sourceWeight }}</span
         >
       </div>
+      <v-btn icon @click="closeLocationSheet"><v-icon>mdi-close</v-icon></v-btn>
     </div>
     <v-divider class="mb-8"></v-divider>
     <validation-observer ref="addLocationObserver" v-slot="{ invalid }">
@@ -148,29 +148,26 @@ export default {
     sourceWeight: 0,
     sourceQuantity: 0,
   }),
-  inject: ["getLocationTable"],
+  inject: ["getLocationTable", "closeLocationSheet", "locationAdded"],
   props: {
     warehouseId: null,
     weight: null,
     quantity: null,
   },
   mixins: [warehouseMixin],
+  created() {
+    this.sourceWeight = this.weight;
+    this.sourceQuantity = parseInt(this.quantity);
+    this.getChamberLists(this.warehouseId);
+    this.getWeight();
+  },
+  destroyed(){
+    this.sourceWeight = 0;
+    this.sourceQuantity = 0;
+  },
   computed: {
     isRequireFullFilled() {
       return this.weight && this.quantity;
-    },
-  },
-  watch: {
-    warehouseId: function (value) {
-      if (value) {
-        this.getChamberLists(value);
-      }
-    },
-    weight: function () {
-      this.sourceWeight = this.weight;
-    },
-    quantity: function () {
-      this.sourceQuantity = parseInt(this.quantity);
     },
   },
   methods: {
@@ -204,6 +201,10 @@ export default {
         this.sourceQuantity =
           this.sourceQuantity - Number(this.locationForm.quantity);
         this.sourceWeight = this.sourceWeight - this.locationForm.weight;
+        if (this.sourceQuantity === 0) {
+          this.locationAdded();
+          this.closeLocationSheet();
+        }
         this.clear();
       });
     },

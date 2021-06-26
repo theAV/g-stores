@@ -7,16 +7,58 @@
         class="mb-5 text-capitalize"
       >
         <h2 class="mb-2">{{ item.name }}</h2>
-        <v-alert outlined color="purple" text v-if="!item.chambers.length">
-          No chamber(s) mapped yet. Please
-          <span class="font-weight-bold"
-            ><router-link :to="{ name: 'addWarehouseItem' }"
-              >click here</router-link
-            ></span
-          >
-          to map the new chamber.
-        </v-alert>
-        <v-expansion-panels v-else focusable>
+
+        <v-row v-if="item.chambers.length">
+          <v-col md="6" v-for="chamber in item.chambers" :key="chamber.id">
+            <v-sheet height="100%">
+              <div class="px-7 py-3">{{ chamber.name }}</div>
+              <v-divider></v-divider>
+              <div class="pa-7">
+                <template v-if="chamber.floors.length">
+                  <div v-for="floor in chamber.floors" :key="floor.id">
+                    <div class="d-flex justify-lg-space-between">
+                      <span>{{ floor.name }}</span>
+                      <div class="d-flex" style="gap: 25px">
+                        <span>
+                          <h5 class="font-weight-regular">Capacity</h5>
+                          {{ floor.capacity }} tons
+                        </span>
+                        <span v-if="getStock(floor.stocks)">
+                          <h5 class="font-weight-regular">Loaded</h5>
+                          {{ getStock(floor.stocks) }} tons
+                          <small class="grey--text ml-1"
+                            >({{
+                              getPercentOfTons(
+                                getStock(floor.stocks),
+                                floor.capacity
+                              )
+                            }}
+                            %)
+                          </small>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="mb-4">
+                      <v-progress-linear
+                        rounded
+                        background-color="#f0f3f5"
+                        :value="
+                          getPercentOfTons(
+                            getStock(floor.stocks),
+                            floor.capacity
+                          )
+                        "
+                        color="primary accent-4"
+                      ></v-progress-linear>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </v-sheet>
+          </v-col>
+        </v-row>
+
+        <!-- <v-expansion-panels v-else focusable>
           <v-expansion-panel v-for="chamber in item.chambers" :key="chamber.id">
             <v-expansion-panel-header class="text-capitalize">
               {{ chamber.name }}
@@ -79,7 +121,7 @@
               </v-expansion-panels>
             </v-expansion-panel-content>
           </v-expansion-panel>
-        </v-expansion-panels>
+        </v-expansion-panels> -->
       </div>
     </template>
 
@@ -135,9 +177,14 @@ export default {
   mixins: [baseMixin],
   methods: {
     getStock(list) {
-      return list.reduce((acc, value) => {
-        return +acc + +value.quantity;
+      const stock = list.reduce((acc, value) => {
+        return +acc + +value.stockWeight;
       }, 0);
+      return stock / 10;
+    },
+    getPercentOfTons(x, y) {
+      const percent = (x * 100) / y;
+      return percent.toFixed(2);
     },
     async getWarehouseLists() {
       const warehouseResponse = await warehouseServices.get();

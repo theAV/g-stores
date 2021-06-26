@@ -14,7 +14,7 @@ class Inward extends Model {
           allowNull: false,
         },
         totalQuantity: {
-          type: DataTypes.STRING,
+          type: DataTypes.BIGINT,
           allowNull: false,
         },
         totalWeight: {
@@ -23,14 +23,17 @@ class Inward extends Model {
         },
         averageWeight: {
           type: DataTypes.FLOAT,
-          allowNull: false,
         },
         packagingType: DataTypes.STRING,
         driverName: DataTypes.STRING,
         vehicleNo: DataTypes.STRING,
         isLoading: DataTypes.BOOLEAN,
-        balance: {
-          type: DataTypes.STRING,
+        balanceWeight: {
+          type: DataTypes.FLOAT,
+          allowNull: false,
+        },
+        balanceQuantity: {
+          type: DataTypes.BIGINT,
           allowNull: false,
         },
         inwardDate: {
@@ -44,9 +47,6 @@ class Inward extends Model {
         paranoid: true,
         modelName: "inward",
         defaultScope: {
-          attributes: {
-            exclude: ["updatedAt", "deletedAt"],
-          },
           order: [["createdAt", "DESC"]],
         },
         hooks: {

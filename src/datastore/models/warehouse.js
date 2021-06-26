@@ -11,17 +11,18 @@ class Warehouse extends Model {
         address: DataTypes.STRING,
         contact: DataTypes.STRING,
         manager: DataTypes.STRING,
-        capacity: DataTypes.FLOAT,
-        status: { type: DataTypes.BOOLEAN, defaultValue: true },
+        capacity: DataTypes.BIGINT,
+        occupied: {
+          type: DataTypes.BIGINT,
+          defaultValue: 0,
+        },
       },
       {
         sequelize,
         paranoid: true,
         modelName: "warehouse",
         defaultScope: {
-          attributes: {
-            exclude: ["createdAt", "updatedAt", "deletedAt"],
-          },
+          order: [["name", "DESC"]],
         },
       }
     );

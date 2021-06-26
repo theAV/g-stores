@@ -10,10 +10,9 @@ class Rack extends BaseController {
     try {
       const result = await models.Rack.findAll({ where });
       if (isEmpty(result)) {
-        return responder("NOT_FOUND", { data: { error: "No Record found" } });
+        return this.noDataResponse();
       }
-      const data = result.map((el) => el.get({ plain: true }));
-      return responder("SUCCESS", { data });
+      return this.sendDataResponse(result, "SUCCESS", true);
     } catch (error) {
       return error;
     }
@@ -21,47 +20,34 @@ class Rack extends BaseController {
   async Post(requesBody) {
     const t = await models.sequelize.transaction();
     try {
-      const result = await models.Rack.bulkCreate(requesBody, {
+      const rackQuery = requesBody.map(async (item) => {
+        try {
+          const racks = await models.Rack.create(item, {
+            transaction: t,
+          });
+          const capacity = Number(item.capacity);
+          await models.Floor.increment('occupied', { by: capacity, where: { id: item.floorId }, transaction: t, })
+          return {
+            rackId: racks.id,
+            floorId: item.floorId,
+            chamberId: item.chamberId,
+            warehouseId: item.warehouseId,
+            stockQuantity: 0,
+            stockWeight: 0,
+          };
+        } catch (error) {
+          return error
+        }
+      })
+
+      const rackQueryResult = await Promise.all(rackQuery);
+      await models.Stock.bulkCreate(rackQueryResult, {
         transaction: t,
       });
-
-      if (result) {
-        const sotckTableData = result.map(async (el) => {
-          try {
-            const floor = await models.Floor.findOne({
-              where: {
-                id: el.floorId,
-              },
-              include: {
-                model: models.Chamber,
-              },
-            });
-            const chamberId = floor.chamberId;
-            const warehouseId = floor.chamber.warehouseId;
-            return {
-              floorId: el.floorId,
-              warehouseId,
-              chamberId,
-              rackId: el.id,
-              stock: 0,
-            };
-          } catch (error) {
-            console.log(error);
-            return error;
-          }
-        });
-
-        const value = await Promise.all(sotckTableData);
-        await models.Stock.bulkCreate(value, {
-          transaction: t,
-        });
-        await t.commit();
-        return responder("SUCCESS", {
-          data: { message: "Record added successfully" },
-        });
-      }
+      await t.commit();
+      return this.sendCreateSuccess("Record added successfully");
+      
     } catch (error) {
-      await t.rollback();
       return error;
     }
   }

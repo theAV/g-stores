@@ -23,7 +23,7 @@
       </v-col>
     </v-row>
 
-    <section class="mt-8 text-capitalize" v-if="inwardList.length > 0">
+    <section class="mt-8 text-capitalize">
       <v-toolbar flat>
         <v-toolbar-title>Recent Inwards</v-toolbar-title>
         <v-divider class="mx-4" inset vertical></v-divider>
@@ -33,15 +33,13 @@
       <v-divider></v-divider>
       <inward-table
         :hide-footer="true"
-        :headers="headers"
-        :data-list="inwardList"
+        :list-limit="20"
       ></inward-table>
     </section>
   </div>
 </template>
 
 <script>
-import inwardMixin from "@/mixins/inward";
 import StockWidget from "./components/StockWidget";
 import CustomerWidget from "./components/CustomerWidget";
 import InwardTable from "../../components/InwardTable/InwardTable";
@@ -52,82 +50,6 @@ export default {
     StockWidget,
     CustomerWidget,
     InwardTable,
-  },
-
-  data: () => {
-    return {
-      headers: [
-        {
-          text: "Receipt Number",
-          align: "start",
-          sortable: false,
-          value: "receiptNumber",
-        },
-        {
-          text: "Customer",
-          align: "start",
-          sortable: true,
-          value: "customer",
-        },
-        {
-          text: "Commodity",
-          align: "start",
-          sortable: false,
-          value: "commodity",
-        },
-        {
-          text: "Category",
-          align: "start",
-          sortable: false,
-          value: "category",
-        },
-        {
-          text: "Inward Date",
-          align: "start",
-          sortable: false,
-          value: "inwardDate",
-        },
-        {
-          text: "Deal type",
-          align: "start",
-          sortable: false,
-          value: "inwardDeals",
-        },
-        {
-          text: "Loading Status",
-          align: "start",
-          sortable: false,
-          value: "isLoading",
-        },
-        {
-          text: "Packaging",
-          align: "start",
-          value: "packagingType",
-        },
-        {
-          text: "Total Quantity",
-          align: "end",
-          sortable: true,
-          value: "totalQuantity",
-        },
-        {
-          text: "Total Weight (Quintal)",
-          align: "end",
-          sortable: true,
-          value: "totalWeight",
-        },
-        {
-          text: "actions",
-          value: "actions",
-          align: "end",
-          sortable: false,
-        },
-      ],
-    };
-  },
-  mixins: [inwardMixin],
-  created() {
-    this.getInwardByLimit(10);
   },
   methods: {
     goToAddNew() {

@@ -6,7 +6,7 @@ class OutwardLocation extends Model {
     return super.init(
       {
         weight: DataTypes.FLOAT,
-        quantity: DataTypes.STRING,
+        quantity: DataTypes.BIGINT,
       },
       {
         sequelize,
@@ -14,9 +14,6 @@ class OutwardLocation extends Model {
         timestamps: false,
         modelName: "outwardLocation",
         defaultScope: {
-          attributes: {
-            exclude: ["createdAt", "updatedAt", "deletedAt"],
-          },
         },
       }
     );

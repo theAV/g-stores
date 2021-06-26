@@ -9,16 +9,18 @@ class Floor extends Model {
           type: DataTypes.STRING,
           allowNull: false,
         },
-        capacity: DataTypes.FLOAT,
+        capacity: DataTypes.BIGINT,
+        occupied: {
+          type: DataTypes.BIGINT,
+          defaultValue: 0,
+        },
       },
       {
         sequelize,
         paranoid: true,
         modelName: "floor",
         defaultScope: {
-          attributes: {
-            exclude: ["createdAt", "updatedAt", "deletedAt"],
-          },
+          order: [["name", "DESC"]],
         },
       }
     );

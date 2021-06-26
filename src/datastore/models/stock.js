@@ -8,7 +8,7 @@ class Stock extends Model {
           type: DataTypes.FLOAT,
         },
         stockQuantity: {
-          type: DataTypes.STRING,
+          type: DataTypes.BIGINT,
         },
       },
       {

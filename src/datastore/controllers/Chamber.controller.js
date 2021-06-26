@@ -1,5 +1,5 @@
 import models from "../models";
-import { responder, isEmpty } from "@/datastore/helper";
+import { isEmpty } from "@/datastore/helper";
 import BaseController from "./Base.controller";
 class Chamber extends BaseController {
   async Get(requesBody) {
@@ -20,13 +20,18 @@ class Chamber extends BaseController {
     }
   }
   async Post(requesBody) {
+    const t = await models.sequelize.transaction();
     try {
-      const result = await models.Chamber.bulkCreate(requesBody);
-      if (result) {
-        return responder("SUCCESS", {
-          data: { message: "Record added successfully" },
+      const promiseQuery = requesBody.map(async (item) => {
+        await models.Chamber.create(item, {
+          transaction: t,
         });
-      }
+        const capacity = Number(item.capacity);
+        await models.Warehouse.increment('occupied', { by: capacity, where: { id: item.warehouseId }, transaction: t, })
+      })
+      await Promise.all(promiseQuery);
+      await t.commit();
+      return this.sendCreateSuccess("Record added successfully");
     } catch (error) {
       return error;
     }

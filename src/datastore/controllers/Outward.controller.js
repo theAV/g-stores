@@ -4,50 +4,62 @@ import BaseController from "./Base.controller";
 
 class Outward extends BaseController {
   async Create(requestBody) {
+    const t = await models.sequelize.transaction();
     try {
-      const { inwardId, balance, location, date } = requestBody;
+      const { inwardId, location, date } = requestBody;
       const outward = await models.Outward.create({
         inwardId,
         date,
-      });
+      }, { transaction: t, });
       const outwardId = outward.id;
-      await models.Inward.update(
-        {
-          balance,
-        },
-        {
-          where: {
-            id: inwardId,
-          },
-        }
-      );
+
+
       const locationPromise = location.map(async (row) => {
-        const { quantity, weight, inwardLocationId } = row;
-        row.outwardId = outwardId;
-        const targetInward = await models.InwardLocation.findOne({
-          where: {
-            id: inwardLocationId,
-          },
-        });
-        return models.InwardLocation.update(
-          {
-            quantity: +targetInward.quantity - +quantity,
-            weight: +targetInward.weight - +weight,
-          },
-          {
+        try {
+          const { quantity, weight, inwardLocationId } = row;
+          row.outwardId = outwardId;
+          const q = Number(quantity);
+          await models.Inward.decrement("balanceQuantity", {
+            by: q, where: {
+              id: inwardId
+            }, transaction: t,
+          })
+          await models.Inward.decrement("balanceWeight", {
+            by: weight, where: {
+              id: inwardId
+            }, transaction: t,
+          })
+          const targetInward = await models.InwardLocation.findOne({
             where: {
               id: inwardLocationId,
             },
-          }
-        );
+          });
+          return models.InwardLocation.update(
+            {
+              quantity: +targetInward.quantity - +quantity,
+              weight: +targetInward.weight - +weight,
+            },
+            {
+              where: {
+                id: inwardLocationId,
+              },
+              transaction: t,
+            }
+          );
+        } catch (error) {
+          return error;
+        }
+
       });
-      const result = await models.OutwardLocation.bulkCreate(location);
+      const result = await models.OutwardLocation.bulkCreate(location, {transaction: t});
       if (isEmpty(result)) return this.noDataResponse();
       const resolved = await Promise.all(locationPromise);
       if (resolved) {
+        await t.commit();
         return this.sendCreateSuccess("Outward added");
       }
     } catch (error) {
+      await t.rollback();
       return error;
     }
   }
