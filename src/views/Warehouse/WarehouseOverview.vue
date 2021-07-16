@@ -15,25 +15,28 @@
               <v-divider></v-divider>
               <div class="pa-7">
                 <template v-if="chamber.floors.length">
-                  <div v-for="floor in chamber.floors" :key="floor.id">
+                  <div
+                    v-for="floor in chamber.floors"
+                    :key="floor.id"
+                    class="mb-7"
+                  >
                     <div class="d-flex justify-lg-space-between">
                       <span>{{ floor.name }}</span>
                       <div class="d-flex" style="gap: 25px">
                         <span>
                           <h5 class="font-weight-regular">Capacity</h5>
-                          {{ floor.capacity }} tons
+                          {{ floor.capacity }} bags
                         </span>
                         <span v-if="getStock(floor.stocks)">
                           <h5 class="font-weight-regular">Loaded</h5>
-                          {{ getStock(floor.stocks) }} tons
+                          {{ getStock(floor.stocks) }} bags
                           <small class="grey--text ml-1"
                             >({{
-                              getPercentOfTons(
+                              getPercent(
                                 getStock(floor.stocks),
                                 floor.capacity
                               )
-                            }}
-                            %)
+                            }}%)
                           </small>
                         </span>
                       </div>
@@ -43,14 +46,34 @@
                         rounded
                         background-color="#f0f3f5"
                         :value="
-                          getPercentOfTons(
-                            getStock(floor.stocks),
-                            floor.capacity
-                          )
+                          getPercent(getStock(floor.stocks), floor.capacity)
                         "
                         color="primary accent-4"
                       ></v-progress-linear>
                     </div>
+                    <div class="rack-list">
+                      <div>Racks</div>
+                      <div class="d-flex">
+                        <span
+                          @click.stop="getInwardByRack(rack.id)"
+                          v-for="rack in floor.racks"
+                          :key="rack.id"
+                        >
+                          {{ rack.name }}
+                          <span
+                            :style="{
+                              height:
+                                getPercent(
+                                  rack.stock.stockQuantity,
+                                  rack.capacity
+                                ) + '%',
+                            }"
+                          >
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                    <v-divider class="my-5"></v-divider>
                   </div>
                 </template>
               </div>
@@ -153,18 +176,47 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="dialog" max-width="800px">
+      <v-card>
+        <h4 v-if="isNoInward" class="pa-5">No data available</h4>
+        <v-simple-table v-if="inwardList.length>0">
+          <template v-slot:default>
+            <thead>
+              <tr>
+                <th class="text-left">Customer</th>
+                <th class="text-left">Commodity</th>
+                <th class="text-left">Quantity</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in inwardList" :key="item.name">
+                <td>{{ item.inward.customer.firstName }}</td>
+                <td>{{ item.inward.commodity.name }}</td>
+                <td>{{ item.quantity }} bags</td>
+              </tr>
+            </tbody>
+          </template>
+        </v-simple-table>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script>
 import warehouseServices from "@/services/warehouse";
+import inwardServices from "@/services/inward";
 import baseMixin from "@/mixins/base";
+import InwardTable from "@/components/InwardTable/InwardTable";
 export default {
   name: "WarehouseOverview",
+  components: { InwardTable },
   data: () => ({
     warehouseList: [],
     confirmationDialog: false,
     idToBeDeleted: null,
+    dialog: false,
+    inwardList: [],
+    isNoInward:false,
   }),
   computed: {
     isDataAvailabel() {
@@ -178,12 +230,15 @@ export default {
   methods: {
     getStock(list) {
       const stock = list.reduce((acc, value) => {
-        return +acc + +value.stockWeight;
+        // if(value.floorId == 3){
+        //   console.log(value)
+        // }
+        return +acc + +value.stockQuantity;
       }, 0);
-      return stock / 10;
+      return stock;
     },
-    getPercentOfTons(x, y) {
-      const percent = (x * 100) / y;
+    getPercent(x, y) {
+      const percent = (Number(x) * 100) / Number(y);
       return percent.toFixed(2);
     },
     async getWarehouseLists() {
@@ -236,8 +291,46 @@ export default {
       this.idToBeDeleted = null;
       this.confirmationDialog = false;
     },
+    async getInwardByRack(id) {
+      this.isNoInward = false;
+      const result = await inwardServices.getInwardByRack(id);
+      console.log(result);
+      if(result.status === 404){
+        this.isNoInward = true;
+        this.dialog = true;
+        return;
+      }
+      this.inwardList = result.data;
+      this.dialog = true;
+    },
   },
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.rack-list {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  .d-flex {
+    > span {
+      width: 40px;
+      height: 90px;
+      background-color: #f2f2f2;
+      margin-left: 4px;
+      margin-right: 4px;
+      position: relative;
+      cursor: pointer;
+      > span {
+        position: absolute;
+        width: 100%;
+        background-color: var(--v-primary-base);
+        bottom: 0;
+        left: 0;
+        height: 0;
+        transition: height 0.5s linear;
+      }
+    }
+  }
+}
+</style>

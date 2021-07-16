@@ -95,7 +95,7 @@
                 label="Please enter rack capacity"
                 type="number"
                 outlined
-                suffix="Tons"
+                suffix="Bags"
                 required
               ></v-text-field>
             </validation-provider>

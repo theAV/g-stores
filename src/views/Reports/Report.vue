@@ -163,12 +163,11 @@
                   <th class="text-left">Packaging Type</th>
                   <th class="text-left text-right">Inward Quantity</th>
                   <th class="text-left text-right">Inward Weight (Quintal)</th>
-                  <th class="text-left text-right">Balance</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="item in report" :key="item.id">
-                  <td class="pa-0" colspan="7">
+                  <td class="pa-0" colspan="6">
                     <v-simple-table>
                       <tbody>
                         <tr>
@@ -185,11 +184,9 @@
                           </td>
 
                           <td class="text-right">{{ item.totalWeight }}</td>
-
-                          <td class="text-right">{{ item.balance }}</td>
                         </tr>
                         <tr v-if="item.outwards.length > 0">
-                          <td colspan="7" class="px-0">
+                          <td colspan="6" class="px-0">
                             <v-simple-table class="grey lighten-5">
                               <tbody>
                                 <tr
@@ -214,7 +211,6 @@
                                       outward.outwardLocations[0].weight
                                     }}
                                   </td>
-                                  <td class="text-right"></td>
                                 </tr>
                               </tbody>
                             </v-simple-table>
@@ -331,22 +327,22 @@ export default {
           fromDate: moment(sortedDates[0]).valueOf(),
           lastDate: moment(sortedDates[1]).valueOf(),
         };
-        let reponse;
+        let response;
         if (this.reportType === 1) {
-          reponse = await inwardServices.getByDate(rb);
+          response = await inwardServices.getByDate(rb);
         }
         if (this.reportType === 2) {
-          reponse = await outwardServices.getByDate(rb);
+          response = await outwardServices.getByDate(rb);
         }
-        console.log(reponse);
-        if (reponse instanceof Error) {
-          throw reponse;
+        console.log(response);
+        if (response instanceof Error) {
+          throw response;
         }
-        if (reponse.status === 200) {
+        if (response.status === 200) {
           this.nodata = false;
-          this.report = reponse.data;
+          this.report = response.data;
         }
-        if (reponse.status === 404) {
+        if (response.status === 404) {
           this.nodata = true;
           this.report = [];
         }
@@ -360,16 +356,16 @@ export default {
         customerId: this.customerId,
       };
       try {
-        const reponse = await inwardServices.getByDate(rb);
-        console.log(reponse);
-        if (reponse instanceof Error) {
-          throw reponse;
+        const response = await inwardServices.getByDate(rb);
+        console.log(response);
+        if (response instanceof Error) {
+          throw response;
         }
-        if (reponse.status === 200) {
+        if (response.status === 200) {
           this.nodata = false;
-          this.report = reponse.data;
+          this.report = response.data;
         }
-        if (reponse.status === 404) {
+        if (response.status === 404) {
           this.nodata = true;
           this.report = [];
         }
@@ -386,16 +382,16 @@ export default {
         commodityId: this.commodityId,
       };
       try {
-        const reponse = await inwardServices.getByDate(rb);
-        console.log(reponse);
-        if (reponse instanceof Error) {
-          throw reponse;
+        const response = await inwardServices.getByDate(rb);
+        console.log(response);
+        if (response instanceof Error) {
+          throw response;
         }
-        if (reponse.status === 200) {
+        if (response.status === 200) {
           this.nodata = false;
-          this.report = reponse.data;
+          this.report = response.data;
         }
-        if (reponse.status === 404) {
+        if (response.status === 404) {
           this.nodata = true;
           this.report = [];
         }
@@ -406,7 +402,7 @@ export default {
     print() {
       sendCommandToWorker({
         data: this.$refs.customerReport.querySelector("table").innerHTML,
-        title: "party wise inwardoutward details",
+        title: "party wise inward outward details",
       });
     },
   },

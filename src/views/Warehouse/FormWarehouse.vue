@@ -29,7 +29,7 @@
                 :error-messages="errors"
                 type="number"
                 label="Capacity*"
-                suffix="Tons"
+                suffix="Bags"
                 outlined
               ></v-text-field>
             </validation-provider>
@@ -112,7 +112,6 @@ export default {
     onSubmit() {
       try {
         this.$refs.formObserver.validate().then(async (valid) => {
-          console.log(valid);
           if (!valid) return;
           const response = await warehouseServices.post(this.form);
           if (response.ok) {

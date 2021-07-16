@@ -20,19 +20,27 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        td[colspan="6"] {
+            padding: 0 !important;
+            border: 0 !important;
         }
 
         .innerTable th,
         .innerTable td {
             border: 1px solid #000;
-            
+
             padding: 2px;
             font-weight: normal;
             text-align: left;
         }
-        .innerTable td{
+
+        .innerTable td {
             border-top: 0;
         }
+
         .innerTable>tbody>tr,
         .innerTable>tbody>tr>td {
             border: 1px solid #000;
@@ -64,7 +72,8 @@
         #page {
             height: calc(100% - 13px);
         }
-        .location-cell{
+
+        .location-cell {
             width: 230px;
         }
     </style>
@@ -166,7 +175,7 @@
         title.innerText = content.title;
         subDetails.innerText = content.details;
         document.querySelector('.innerTable').innerHTML = content.data;
-        ipcRenderer.send("readyToPrint");
+        // setTimeout(()=>{ipcRenderer.send("readyToPrint");}, 200)
     });
 </script>
 

@@ -45,7 +45,7 @@
         show-expand
         class="elevation-1"
         item-class="elevation-0"
-        @click:row="(item, slot) => clicked(item, slot)"
+        item-expanded
       >
         <template v-slot:expanded-item="{ headers, item }">
           <td :colspan="headers.length">
@@ -318,7 +318,6 @@ export default {
         value: "weight",
       },
     ],
-    currentInward:{},
     outwardDate: "",
   }),
   created() {
@@ -326,11 +325,6 @@ export default {
   },
   mixins: [baseMixin],
   methods: {
-    clicked(item, slot) {
-      this.selected = [];
-      slot.expand(!slot.isExpanded);
-      this.currentInward = item;
-    },
     removeOutwardRow(id) {
       this.outwardForm = this.outwardForm.filter((row, i) => {
         return i !== id;
@@ -365,8 +359,11 @@ export default {
     },
     async submitOutwardForm() {
       try {
-        const inwardId = this.currentInward.id;
+        const inwardId = this.expanded[0].id;
         const outwardDate = this.outwardDate;
+        if(!outwardDate){
+          return this.showSnackBar("Date is required"); 
+        }
         const requestBody = {
           inwardId,
           date: outwardDate

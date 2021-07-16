@@ -7,6 +7,7 @@ const {
   GET_INWARD_BY_ID,
   GET_INWARD_BY_BALANCE,
   GET_INWARD_BY_DATE,
+  GET_INWARD_BY_RACK
 } = eventConst;
 
 class InwardServices {
@@ -28,6 +29,9 @@ class InwardServices {
   }
   getInwardByBalance() {
     return ipc.invoke(GET_INWARD_BY_BALANCE);
+  }
+  getInwardByRack(rackId) {
+    return ipc.invoke(GET_INWARD_BY_RACK, rackId);
   }
 }
 

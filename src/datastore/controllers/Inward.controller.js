@@ -31,17 +31,17 @@ class Inward extends BaseController {
           loc.inwardId = inwardId;
           await models.InwardLocation.create(loc, { transaction: t });
 
-          const totalQuantityInNumber = Number(form.totalQuantity);
+          const totalQuantityInNumber = Number(loc.quantity);
 
           await models.Stock.increment("stockQuantity", {
             by: totalQuantityInNumber,
             where: {
-              rackId: loc.rackId,
+              rackId: loc.rackId, 
             },
             transaction: t,
           })
           await models.Stock.increment("stockWeight", {
-            by: form.totalWeight,
+            by: loc.weight,
             where: {
               rackId: loc.rackId,
             },
@@ -219,6 +219,39 @@ class Inward extends BaseController {
         return this.noDataResponse();
       }
       return this.sendDataResponse(result, "SUCCESS", true);
+    } catch (error) {
+      return error;
+    }
+  }
+  async GetInwardByRack(rackId){
+    try {
+      const result = await models.InwardLocation.findAll({
+        include:[{
+          model: models.Inward,
+          include: [
+            {
+              model: models.Customer,
+              attributes: ["id", "firstName", "lastName", "firmName"],
+            },
+            models.Commodity,
+            models.Category,
+            {
+              model: models.InwardDeal,
+              include: [models.DealType],
+            },
+          ],
+        }],
+        where: {
+          rackId:rackId
+        }
+      })
+      console.log(result);
+      if (isEmpty(result)) {
+        return this.noDataResponse();
+      }
+      const data = this.getPlainDataObject(result);
+      console.log(data)
+      return this.sendDataResponse(data);
     } catch (error) {
       return error;
     }

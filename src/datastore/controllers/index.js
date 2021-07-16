@@ -86,6 +86,9 @@ ipcMain.handle(eventConst.GET_INWARD_BY_BALANCE, () =>
 ipcMain.handle(eventConst.GET_INWARD_BY_DATE, (event, rb) =>
   inward.GetReportByDate(rb)
 );
+ipcMain.handle(eventConst.GET_INWARD_BY_RACK, (event, rb)=>{
+  return inward.GetInwardByRack(rb)
+})
 
 //stock
 ipcMain.handle(eventConst.GET_TOTAL_STOCK, () => {
