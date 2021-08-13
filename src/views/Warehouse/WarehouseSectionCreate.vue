@@ -38,19 +38,15 @@
 
 <script>
 import { DlStepper, DlStepperItem } from "../../components/Stepper";
-import FormWarehouse from "./FormWarehouse";
-import FormChamber from "./FormChamber";
-import FormFloor from "./FormFloor";
-import FormRack from "./FormRack";
 export default {
   name: "",
   components: {
     DlStepper,
     DlStepperItem,
-    FormWarehouse,
-    FormChamber,
-    FormFloor,
-    FormRack,
+    FormWarehouse: () => import("./FormWarehouse"),
+    FormChamber: () => import("./FormChamber"),
+    FormFloor: () => import("./FormFloor"),
+    FormRack: () => import("./FormRack"),
   },
   data: () => {
     return {

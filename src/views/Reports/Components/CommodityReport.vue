@@ -22,7 +22,7 @@
         hide-default-footer
         disable-pagination
         :sort-by="['commodityName']"
-        group-by="commodityName"
+        :group-by="groupBy"
         class="elevation-1 text-capitalize"
       >
         <template v-slot:[`group.header`]="{ items, isOpen, toggle }">
@@ -117,12 +117,12 @@ export default {
         sortable: false,
         value: "serialNo",
       },
-      {
-        text: "Commodity",
-        align: "start",
-        sortable: false,
-        value: "commodityName",
-      },
+      // {
+      //   text: "Commodity",
+      //   align: "start",
+      //   sortable: false,
+      //   value: "commodityName",
+      // },
       {
         text: "variant",
         align: "start",
@@ -201,6 +201,9 @@ export default {
     },
   },
   computed: {
+    groupBy() {
+      return this.commodityId === -1 ? "commodityName" : null;
+    },
     title() {
       return `${this.warehouse.name}<br/>${this.getCommodityName}`;
     },

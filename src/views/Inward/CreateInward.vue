@@ -52,7 +52,7 @@
                   name="Customer"
                   rules="required"
                 >
-                  <v-select
+                  <v-autocomplete
                     v-model="form.customerId"
                     :items="customerList"
                     :error-messages="errors"
@@ -61,7 +61,7 @@
                     label="Customer / Part / Firm*"
                     outlined
                     required
-                  ></v-select>
+                  ></v-autocomplete>
                 </validation-provider>
               </v-col>
               <v-col md="2">
@@ -333,6 +333,8 @@
                 <v-checkbox
                   v-model="form.isLoading"
                   label="Loading?"
+                  dense
+                  hide-details
                 ></v-checkbox>
               </v-col>
             </v-row>
@@ -374,6 +376,7 @@
               width="180"
               depressed
               large
+              :loading="submitting"
               >Submit</v-btn
             >
           </v-card-actions>
@@ -409,6 +412,7 @@ export default {
   data: () => ({
     today: getTodayDate(),
     rangePicker: false,
+    submitting: false,
     form: {
       averageWeight: "",
       customerId: "",
@@ -506,6 +510,7 @@ export default {
     async onSubmit() {
       try {
         this.$refs.observer.validate().then(async (valid) => {
+          this.submitting = true;
           if (!valid && !this.isLocationAdded) return;
           const { warehouseId, ...rest } = this.form;
           const locations = this.locations.map((item) => {
@@ -543,16 +548,18 @@ export default {
           const response = await inwardServices.post(rb);
           if (response instanceof Error) throw response;
           if (response.status === 302) {
-            console.log(response);
+            this.submitting = false;
             this.showSnackBar(response.data.message, "error");
             return;
           }
           if (response.status === 200) {
             this.showSnackBar(response.data.message, "success");
             this.clearAll();
+            this.submitting = false;
           }
         });
       } catch (error) {
+        this.submitting = false;
         console.error(error);
       }
     },
@@ -606,6 +613,7 @@ export default {
       this.dealRate = "";
       this.quantityForLocationSheet = 0;
       this.weightForLocationSheet = 0;
+      this.submitting = false;
     },
   },
 };

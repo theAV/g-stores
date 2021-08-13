@@ -23,8 +23,6 @@
 </template>
 
 <script>
-import commodityServices from "@/services/commodity";
-
 export default {
   name: "CommodityForm",
   components: {
@@ -37,13 +35,6 @@ export default {
       tab: null,
       items: ["Commodity", "Variant", "Category"],
     };
-  },
-
-  methods: {
-    async getStock(id) {
-      const response = await commodityServices.getCommodityStock(id);
-      console.log(response);
-    },
   },
 };
 </script>

@@ -312,6 +312,7 @@ class Inward extends BaseController {
       customerId,
       commodityId,
       warehouseId,
+      isLoading
     } = requestBody;
     let whereClause = {};
     // if data required in a date range
@@ -323,6 +324,9 @@ class Inward extends BaseController {
       locationWhere = {
         warehouseId,
       };
+    }
+    if(isLoading){
+      locationWhere = {};
     }
     if (customerId) {
       whereClause = {
@@ -363,7 +367,8 @@ class Inward extends BaseController {
           },
           {
             model: models.InwardLocation,
-            include: [models.Chamber, models.Floor, models.Rack],
+            required: isLoading ? false : true,
+            include: [models.Warehouse, models.Chamber, models.Floor, models.Rack],
             where: locationWhere,
           },
         ],
@@ -494,6 +499,31 @@ class Inward extends BaseController {
       if (isEmpty(result)) {
         return this.noDataResponse();
       }
+      const data = this.getPlainDataObject(result);
+      return this.sendDataResponse(data);
+    } catch (error) {
+      return error;
+    }
+  }
+  async getUnloadedStock(){
+    try {
+      const result = await models.Inward.findAll({
+        where:{
+          isLoading: true
+        },
+        attributes: [
+          [
+            models.sequelize.fn("sum", models.sequelize.col("balanceQuantity")),
+            "total_stock_quantity",
+          ],
+          [
+            models.sequelize.fn("sum", models.sequelize.col("balanceWeight")),
+            "total_stock_weight",
+          ],
+        ],
+      });
+
+      if (isEmpty(result)) return this.noDataResponse();
       const data = this.getPlainDataObject(result);
       return this.sendDataResponse(data);
     } catch (error) {

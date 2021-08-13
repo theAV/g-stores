@@ -113,6 +113,7 @@ ipcMain.handle(eventConst.UPDATE_LOCATION, (event, rb) => {
   return inward.UpdateLocation(rb);
 });
 ipcMain.handle(eventConst.UNLOADED_INWARDS, () => inward.getUnloadedInwards());
+ipcMain.handle(eventConst.UNLOADED_INWARDS_STOCKS, () => inward.getUnloadedStock());
 
 //stock
 ipcMain.handle(eventConst.GET_TOTAL_STOCK, () => {

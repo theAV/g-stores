@@ -1,6 +1,6 @@
 "use strict";
 import { DataTypes, Model } from "sequelize";
-
+import { capitalize } from "../../utility";
 class Inward extends Model {
   static init(sequelize) {
     return super.init(
@@ -50,11 +50,24 @@ class Inward extends Model {
           order: [["inwardDate", "DESC"]],
         },
         hooks: {
-          // afterCreate: function (instance) {
-          //   instance.inwardDate = getEpoch(instance.inwardDate);
-          //   instance.lotNumber = generateLotNumber(instance.totalQuantity);
-          //   instance.balance = instance.totalQuantity;
-          // },
+          afterFind: function (instance) {
+            if(Array.isArray(instance)){
+              const data = instance.map((el) => el.get({ plain: true }))
+              data.forEach(row=>{
+                if(row.customer){
+                  row.customer.firstName = capitalize(row.customer.firstName);
+                  row.customer.address = capitalize(row.customer.address);
+                }
+                if(row.commodity){
+                  row.commodity.name = capitalize(row.commodity.name);
+                }
+                if(row.CommodityVariant){
+                  row.CommodityVariant.name = capitalize(row.CommodityVariant.name);
+                }
+              })
+              return data;
+            }
+          },
         },
       }
     );

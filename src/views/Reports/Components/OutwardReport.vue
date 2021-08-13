@@ -42,17 +42,18 @@
         <!-- footer -->
         <template slot="body.append">
           <tr class="text-bold">
-            <th class="text-right"></th>
-            <th class="text-right"></th>
-            <th class="text-right"></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
             <th class="text-right">
               {{ sumField("quantity") | maximumFractionDigits }}
             </th>
             <th class="text-right">
               {{ sumField("weight") | maximumFractionDigits }}
             </th>
-            <th class="text-right"></th>
-            <th class="text-right"></th>
+            <th></th>
+            <th></th>
           </tr>
         </template>
       </v-data-table>
@@ -72,6 +73,12 @@ export default {
         align: "start",
         sortable: true,
         value: "date",
+      },
+      {
+        text: "R. No.",
+        align: "start",
+        sortable: false,
+        value: "inward.receiptNumber",
       },
       {
         text: "Ch. No.",

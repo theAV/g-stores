@@ -7,6 +7,7 @@
         :disabled="inwardList.length === 0"
         :data-ref="$refs.table"
         :title="title"
+        :details="details"
         name="Inward Report"
       ></export-menu>
     </v-toolbar>
@@ -170,7 +171,7 @@ export default {
       {
         text: "Date",
         align: "start",
-        sortable: false,
+        sortable: true,
         value: "inwardDate",
       },
       {
@@ -299,6 +300,9 @@ export default {
       return this.inwardList.reduce((a, b) => a + (+b[key] || 0), 0);
     },
     init() {
+      if(this.showLoadingOnly){
+        return this.getUnloadedInwards();
+      }
       this.getInwardByLimit(this.listLimit);
     },
     async getInwardByLimit(limit) {
@@ -336,6 +340,7 @@ export default {
         this.showSnackBar(response.data.message, "success");
         this.init();
         EventBus.$emit("UPDATE_STOCK_CARD");
+        EventBus.$emit("UPDATE_LOADING_CARD");
       }
     },
     async getInwardByDateRange(requestBody) {

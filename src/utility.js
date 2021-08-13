@@ -16,6 +16,10 @@ export const convertToQuintal = (value) => {
   if (!isValidNumbervalues(value)) throw new Error("invalid value");
   return Number(value) / 100;
 };
+export const capitalize = (value) => {
+  if (!value) return "";
+  return value.toLowerCase().trim();
+};
 
 export const maximumFractionDigits = (value) => {
   if (!isValidNumbervalues(value)) throw new Error("invalid value");

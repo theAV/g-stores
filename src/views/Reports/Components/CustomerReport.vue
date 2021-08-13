@@ -37,6 +37,7 @@
               <th class="text-left text-right">Bal Weight</th>
               <th class="text-left">Commodity</th>
               <th class="text-left">Variant</th>
+              <th v-if="shouldShowLocation && !warehouse" class="text-left">Warehouse</th>
               <th v-if="shouldShowLocation" class="text-left">Chamber</th>
               <th v-if="shouldShowLocation" class="text-left">Floor</th>
               <th v-if="shouldShowLocation" class="text-left">Rack</th>
@@ -45,7 +46,7 @@
           </thead>
           <tbody>
             <template v-for="item in dataList">
-              <tr class="inward-row" :key="item.id" :id="item.id">
+              <tr class="inward-row" :key="item.id" :id="item.id" :class="loadingClasses(item.isLoading)">
                 <td>{{ item.inwardDate | formatDate }}</td>
                 <td style="width: 80px">{{ item.receiptNumber }}</td>
                 <td style="width: 80px"></td>
@@ -68,6 +69,13 @@
                 </td>
                 <td class="text-capitalize">
                   {{ item.CommodityVariant.name }}
+                </td>
+                <td v-if="shouldShowLocation && !warehouse" class="text-capitalize">
+                  <div
+                    v-for="location in item.inwardLocations"
+                    :key="location.id"
+                    v-text="location.warehouse.name"
+                  ></div>
                 </td>
                 <td v-if="shouldShowLocation" class="text-capitalize">
                   <div
@@ -136,15 +144,14 @@
                   <td></td>
                   <td></td>
                   <td></td>
+                  <td v-if="shouldShowLocation && !warehouse"></td>
                   <td v-if="shouldShowLocation"></td>
                   <td v-if="shouldShowLocation"></td>
                   <td v-if="shouldShowLocation"></td>
                   <td v-if="shouldShowLocation"></td>
                 </tr>
               </template>
-            </template>
-          </tbody>
-          <tfoot>
+            </template> 
             <tr class="text-bold">
               <th></th>
               <th></th>
@@ -170,12 +177,13 @@
               <th></th>
               <th></th>
 
+              <th v-if="shouldShowLocation && !warehouse"></th>
               <th v-if="shouldShowLocation"></th>
               <th v-if="shouldShowLocation"></th>
               <th v-if="shouldShowLocation"></th>
               <th v-if="shouldShowLocation"></th>
             </tr>
-          </tfoot>
+          </tbody>
         </template>
       </v-simple-table>
     </div>
@@ -210,7 +218,8 @@ export default {
   },
   computed: {
     title() {
-      return `${this.warehouse.name}<br/>${this.dataList[0].customer.firstName}, ${this.dataList[0].customer.address}`;
+      const warehouseName = this.warehouse?.name || "";
+      return `${warehouseName}<br/>${this.dataList[0].customer.firstName}, ${this.dataList[0].customer.address}`;
     },
     details() {
       return `Report from ${this.$options.filters.formatDate(
@@ -222,6 +231,9 @@ export default {
     this.dataRef = this.$refs.table;
   },
   methods: {
+    loadingClasses(isLoading) {
+      return isLoading ? "lighten-5 red" : "";
+    },
     sumField(key) {
       return this.dataList.reduce((a, b) => a + (+b[key] || 0), 0);
     },

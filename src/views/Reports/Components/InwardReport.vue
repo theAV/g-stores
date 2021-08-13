@@ -152,6 +152,12 @@ export default {
         class: "small-cell",
         cellClass: "small-cell",
       },
+      {
+        text: "Vehicle No.",
+        sortable: false,
+        value: "vehicleNo",
+        cellClass: "text-uppercase",
+      },
     ],
     locationHeaderObj: [
       {

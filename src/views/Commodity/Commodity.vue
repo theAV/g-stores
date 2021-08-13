@@ -182,7 +182,6 @@ export default {
   },
   methods: {
     sumBalance(arr, value) {
-      console.log(value);
       return arr.reduce((a, b) => a + (+b[value] || 0), 0);
     },
     closeHandler() {

@@ -174,8 +174,8 @@
             <td v-text="location.floor.name"></td>
             <td v-text="location.rack.name"></td>
             <td v-text="location.slots"></td>
-            <td v-text="location.quantity"></td>
-            <td v-text="location.weight"></td>
+            <td>{{location.quantity | maximumFractionDigits}}</td>
+            <td>{{location.weight | maximumFractionDigits}}</td>
             <td>
               <v-btn icon @click="remove(location.id)">
                 <v-icon>mdi-delete-outline</v-icon></v-btn
@@ -186,7 +186,7 @@
         <tfoot>
           <tr>
             <td colspan="8" class="text-center">
-              <v-btn depressed color="primary" @click="updateLocation" :disabled="sourceQuantity>0"
+              <v-btn depressed color="primary" :loading="submitting" @click="updateLocation" :disabled="sourceQuantity>0"
                 >Submit</v-btn
               >
             </td>
@@ -213,6 +213,7 @@ export default {
   components: { ValidationObserver, ValidationProvider },
   data: () => {
     return {
+      submitting: false,
       warehouseList: [],
       chamberList: [],
       floorList: [],
@@ -250,8 +251,7 @@ export default {
         const averageWeight =
           convertToKG(this.sourceWeight) / this.sourceQuantity;
         const weightInQuintal = convertToQuintal(quantity * averageWeight);
-        this.locationForm.weight =
-          this.$options.filters.maximumFractionDigits(weightInQuintal);
+        this.locationForm.weight = weightInQuintal.toFixed(2) * 1;
       }
     },
     showSheet() {
@@ -368,6 +368,7 @@ export default {
       });
     },
     async updateLocation() {
+      this.submitting = true;
       try {
         const inwardId = this.inwardData.id;
         const locationMap = this.locationMap.map((item) => {
@@ -392,10 +393,13 @@ export default {
         if (response.status === 200) {
           this.showSnackBar(response.data.message, "success");
           this.closeLocationSheet();
+          this.submitting = false;
           EventBus.$emit("UPDATE_STOCK_CARD");
           EventBus.$emit("REFRESH_INWARD_TABLE");
+          EventBus.$emit("UPDATE_LOADING_CARD");
         }
       } catch (error) {
+        this.submitting = false;
         console.log(error);
       }
     },

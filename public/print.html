@@ -63,7 +63,7 @@
 
         .title {
             margin-bottom: 5px;
-            font-size: 16px;
+            font-size: 14px;
             text-transform: capitalize;
         }
 
@@ -132,12 +132,22 @@
         .text-uppercase {
             text-transform: uppercase;
         }
+
         body.A4.landscape,
         body.A4.landscape .sheet {
             height: auto !important;
         }
-        .outward-row td:first-child{
+
+        .outward-row td:first-child {
             padding-left: 15px;
+        }
+
+        .sheet.padding-5mm {
+            padding: 0 5mm 5mm;
+            margin-top: 0;
+        }
+        button{
+            cursor: pointer;
         }
     </style>
     <style media="print">
@@ -166,6 +176,7 @@
             size: A4 landscape;
             margin: 30px 25px;
         }
+
         body.A4.landscape,
         body.A4.landscape .sheet {
             height: auto !important;
@@ -175,8 +186,9 @@
 </head>
 
 <body>
-    <div style="text-align: center; padding: 10px;"><button onclick="print()" style="padding-left: 15px;padding-right: 15px;">Print</button></div>
-    <div class="sheet padding-10mm">
+    <div class="hide-print" style="text-align: center; padding: 10px;"><button onclick="print()"
+            style="padding-left: 15px;padding-right: 15px;">Print</button></div>
+    <div class="sheet padding-5mm">
         <div id="page">
             <div id="inwardReport">
                 <table class="wrapper text-capitalize" cellspacing="0">
@@ -246,14 +258,15 @@
         </div>
 
     </div>
-    <div style="text-align: center; padding: 10px;"><button onclick="print()" style="padding-left: 15px;padding-right: 15px;">Print</button></div>
+    <div class="hide-print" style="text-align: center; padding: 10px;"><button onclick="print()"
+            style="padding-left: 15px;padding-right: 15px;">Print</button></div>
 </body>
 <script>
     const ipcRenderer = require("electron").ipcRenderer;
     ipcRenderer.on("printReport", async (event, content) => {
         let title = document.getElementById("title");
         let subDetails = document.getElementById("subDetails");
-        title.innerHTML = content.title;
+        title.innerHTML = content.title || null;
         subDetails.innerText = content.details;
         document.querySelector('.innerTable').innerHTML = content.data;
         if (content.isFixedTable) {
@@ -263,7 +276,7 @@
         }
         // setTimeout(() => { ipcRenderer.send("readyToPrint"); }, 800);
     });
-    function print(){
+    function print() {
         ipcRenderer.send("readyToPrint")
     }
 </script>

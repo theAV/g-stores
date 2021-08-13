@@ -3,8 +3,8 @@
     <div ref="inwardTablePrintRef">
       <inward-table
         ref="inwardTable"
-        :title="printTitle"
-        :details="printDetails"
+        :title="title"
+        :details="details"
         exportable
       >
         <template v-slot:toolbarcontent>
@@ -74,7 +74,6 @@ import EventBus from "@/event";
 import warehouseServices from "@/services/warehouse";
 import baseMixin from "@/mixins/base";
 import { computedDateFormattedMomentjs } from "@/utility";
-// import VueHtml2pdf from "vue-html2pdf";
 import moment from "moment";
 
 export default {
@@ -86,8 +85,6 @@ export default {
       rangePicker: false,
       rangeDate: [],
       warehouseList: [],
-      printTitle: "Inward report",
-      printDetails: "Inward report",
     };
   },
   created() {
@@ -96,6 +93,15 @@ export default {
   computed: {
     computedDateFormattedMomentjs() {
       return computedDateFormattedMomentjs(this.rangeDate);
+    },
+    title() {
+      const warehouseName = this.warehouseList.find((row)=>row.id === this.warehouseId)?.name;
+      return this.warehouseId ? `${warehouseName}`: "Inward Report";
+    },
+    details() {
+      return this.rangeDate.length < 2? "" : `Inward report from ${this.$options.filters.formatDate(
+        this.rangeDate[0]
+      )} to ${this.$options.filters.formatDate(this.rangeDate[1])}`;;
     },
   },
   mixins: [baseMixin],
@@ -134,28 +140,8 @@ export default {
         fromDate: moment(sortedDates[0]).valueOf(),
         lastDate: moment(sortedDates[1]).valueOf(),
       };
-      this.printTitle = `Inward report from ${this.$options.filters.formatDate(
-        this.rangeDate[0]
-      )} to ${this.$options.filters.formatDate(this.rangeDate[1])}`;
       EventBus.$emit("GET_INWARD_BY_DATE_RANGE", rb);
     },
-    // print() {
-    //   let printDetails = {
-    //     data: this.$refs.inwardTablePrintRef.querySelector("table").innerHTML,
-    //     title:
-    //       this.warehouseList.find((item) => item.id === this.warehouseId)
-    //         ?.name || null,
-    //     details: "Inward report",
-    //   };
-    //   if (this.rangeDate.length === 2) {
-    //     printDetails = {
-    //       ...printDetails,
-    //       details: `Inward report from ${this.$options.filters.formatDate(
-    //         this.rangeDate[0]
-    //       )} to ${this.$options.filters.formatDate(this.rangeDate[1])}`,
-    //     };
-    //   }
-    // },
   },
 };
 </script>

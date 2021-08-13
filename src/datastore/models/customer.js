@@ -1,5 +1,6 @@
 "use strict";
 import { DataTypes, Model } from "sequelize";
+import { capitalize } from "../../utility";
 
 class Customer extends Model {
   static init(sequelize) {
@@ -25,6 +26,16 @@ class Customer extends Model {
         sequelize,
         paranoid: true,
         modelName: "customer",
+        hooks: {
+          afterFind: function (instance) {
+            const data = instance.map((el) => el.get({ plain: true }))
+            data.forEach(row=>{
+              row.firstName = capitalize(row.firstName);
+              row.address = capitalize(row.address);
+            })
+            return data;
+          },
+        },
         defaultScope: {
           order: [["firstName", "DESC"]],
         },

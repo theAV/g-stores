@@ -23,6 +23,7 @@
           >
             <template v-slot:activator="{ on, attrs }">
               <v-text-field
+                :disabled="!warehouseId"
                 v-model="computedDateFormattedMomentjs"
                 label="Select date range"
                 append-icon="mdi-calendar"
@@ -44,7 +45,7 @@
             >Search</v-btn
           >
           <v-btn
-            :disabled="rangeDate.length < 2"
+            :disabled="rangeDate.length < 2 && !warehouseId"
             color="danger"
             text
             @click="reset"
@@ -118,6 +119,7 @@
               <th></th>
               <th></th>
               <th></th>
+              <th></th>
               <th class="text-right">
                 {{ sumField("quantity") | maximumFractionDigits }}
               </th>
@@ -151,17 +153,25 @@ import { computedDateFormattedMomentjs, getEpoch } from "@/utility";
 export default {
   data: () => {
     return {
+      warehouseId: null,
       search: "",
       rangePicker: false,
       rangeDate: [],
       warehouseList: [],
       dataList: [],
+      dataRef: null,
       headers: [
         {
           text: "Date",
           align: "start",
           sortable: true,
           value: "date",
+        },
+        {
+          text: "R. No.",
+          align: "start",
+          sortable: false,
+          value: "inward.receiptNumber",
         },
         {
           text: "Ch. No.",
@@ -218,28 +228,19 @@ export default {
     this.getWarehouse();
     this.init();
   },
-  mounted() {
-    this.dataRef = this.$refs.tablePrintRef;
-  },
+
   computed: {
     computedDateFormattedMomentjs() {
       return computedDateFormattedMomentjs(this.rangeDate);
     },
-    warehouseId() {
-      return this.warehouseList[0]?.id;
-    },
     title() {
-      return (
-        this.warehouseList.find((item) => item.id === this.warehouseId)?.name ||
-        null
-      );
+      const warehouseName = this.warehouseList.find((row)=>row.id === this.warehouseId)?.name;
+      return this.warehouseId ? `${warehouseName}`: "Outward Report";
     },
     details() {
-      return this.rangeDate.length === 2
-        ? `outward report from ${this.$options.filters.formatDate(
-            this.rangeDate[0]
-          )} to ${this.$options.filters.formatDate(this.rangeDate[1])}`
-        : "outward report";
+      return this.rangeDate.length < 2? "" : `Outward report from ${this.$options.filters.formatDate(
+        this.rangeDate[0]
+      )} to ${this.$options.filters.formatDate(this.rangeDate[1])}`;;
     },
   },
   mixins: [baseMixin],
@@ -255,6 +256,7 @@ export default {
     },
     reset() {
       this.rangeDate = [];
+      this.warehouseId = null;
       this.init();
     },
     async getWarehouse() {
@@ -282,6 +284,7 @@ export default {
       let response = await outwardServices.getByDate(rb);
       if (response.status === 200) {
         this.dataList = response.data;
+        this.dataRef = this.$refs.tablePrintRef;
       }
     },
     async deleteOutward(id) {

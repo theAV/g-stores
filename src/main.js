@@ -9,7 +9,6 @@ import "@mdi/font/css/materialdesignicons.css";
 import "./filters";
 import "./styles/styles.scss";
 import VueHtmlToPaper from "vue-html-to-paper";
-import store from "./store";
 
 Vue.use(VueHtmlToPaper);
 Vue.use(VeeValidate, {
@@ -22,6 +21,5 @@ Vue.component("NoData", () => import("./components/NoData/NoData"));
 new Vue({
   router,
   vuetify,
-  store,
   render: (h) => h(App),
 }).$mount("#app");

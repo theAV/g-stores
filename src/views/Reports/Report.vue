@@ -8,11 +8,10 @@
     </div>
     <v-divider></v-divider>
     <div class="pt-5">
-      <v-card elevation="2">
-        <v-card-title class="px-7">Reports </v-card-title>
-        <v-divider></v-divider>
+      <v-card elevation="2" class="rounded-0">
         <div class="px-7 pt-7">
           <v-radio-group
+            :disabled="loading"
             v-model="reportTypeOption"
             row
             class="mt-0"
@@ -21,6 +20,11 @@
             <v-radio value="1">
               <template v-slot:label>
                 <div class="primary--text">Party wise reports</div>
+              </template>
+            </v-radio>
+            <v-radio value="4">
+              <template v-slot:label>
+                <div class="primary--text">Party wise full reports</div>
               </template>
             </v-radio>
             <v-radio value="2">
@@ -46,11 +50,13 @@
                 label="Please select warehouse"
                 outlined
                 required
+                hide-details
+                :disabled="reportTypeOption === '4'"
               ></v-select>
             </v-col>
             <v-col md="3">
-              <v-select
-                v-if="reportTypeOption === '1'"
+              <v-autocomplete
+                v-if="reportTypeOption === '1' || reportTypeOption === '4'"
                 v-model="customerId"
                 :items="customerList"
                 item-value="id"
@@ -58,9 +64,10 @@
                 label="Please select customer"
                 outlined
                 required
+                hide-details
                 @change="reportOptionChange"
-              ></v-select>
-              <v-select
+              ></v-autocomplete>
+              <v-autocomplete
                 v-if="reportTypeOption === '2'"
                 v-model="commodityId"
                 :items="commoditylist"
@@ -69,8 +76,9 @@
                 label="Please select commodity"
                 outlined
                 required
+                hide-details
                 @change="reportOptionChange"
-              ></v-select>
+              ></v-autocomplete>
               <v-select
                 v-if="reportTypeOption === '3'"
                 v-model="reportType"
@@ -80,6 +88,7 @@
                 label="Please select Option"
                 outlined
                 required
+                hide-details
                 @change="reportOptionChange"
               ></v-select>
             </v-col>
@@ -95,19 +104,26 @@
                 <template v-slot:activator="{ on, attrs }">
                   <v-text-field
                     v-model="computedDateFormattedMomentjs"
-                    label="Picker without buttons"
+                    label="Select date range"
                     append-icon="mdi-calendar"
                     readonly
                     v-bind="attrs"
                     v-on="on"
                     outlined
+                    hide-details
                   ></v-text-field>
                 </template>
                 <v-date-picker range v-model="rangeDate"></v-date-picker>
               </v-menu>
             </v-col>
             <v-col md="3">
-              <v-btn depressed color="primary" x-large @click="generateReport"
+              <v-btn
+                depressed
+                color="primary"
+                x-large
+                :loading="loading"
+                @click="generateReport"
+                :disabled="rangeDate.length < 2"
                 >Submit</v-btn
               >
             </v-col>
@@ -161,18 +177,19 @@ import outwardServices from "@/services/outward";
 import warehouseMixin from "@/mixins/warehouse";
 import customerMixins from "@/mixins/customer";
 import moment from "moment";
-import InwardReport from "./Components/InwardReport.vue";
-import CommodityReport from "./Components/CommodityReport.vue";
-import CustomerReport from "./Components/CustomerReport.vue";
-import OutwardReport from "./Components/OutwardReport.vue";
 import commodityServices from "@/services/commodity";
-
 import { computedDateFormattedMomentjs } from "@/utility";
 export default {
-  components: { InwardReport, CommodityReport, CustomerReport, OutwardReport },
+  components: {
+    InwardReport: () => import("./Components/InwardReport"),
+    CommodityReport: () => import("./Components/CommodityReport"),
+    CustomerReport: () => import("./Components/CustomerReport"),
+    OutwardReport: () => import("./Components/OutwardReport"),
+  },
   name: "ReportComponent",
   mixins: [customerMixins, warehouseMixin],
   data: () => ({
+    showWithLoading: false,
     nodata: false,
     reportType: null,
     reportTypeOption: "1",
@@ -180,7 +197,7 @@ export default {
     customerId: null,
     commodityId: null,
     rangePicker: false,
-    loading: true,
+    loading: false,
     rangeDate: [new Date().toISOString().substr(0, 10)],
     reportOption: [
       {
@@ -207,7 +224,9 @@ export default {
     },
     isCustomerReport() {
       return (
-        this.report.length > 0 && this.reportTypeOption === "1" && !this.loading
+        this.report.length > 0 &&
+        (this.reportTypeOption === "1" || this.reportTypeOption === "4") &&
+        !this.loading
       );
     },
     isCommodityReport() {
@@ -219,6 +238,13 @@ export default {
       return (
         this.report.length > 0 && this.reportTypeOption === "3" && !this.loading
       );
+    },
+  },
+  watch: {
+    reportTypeOption: function (newValue) {
+      if (newValue === "4") {
+        return (this.warehouseId = null);
+      }
     },
   },
   created() {
@@ -254,17 +280,29 @@ export default {
         fromDate: moment(sortedDates[0]).valueOf(),
         lastDate: moment(sortedDates[1]).valueOf(),
       };
-      if (this.reportTypeOption === "1") {
-        rb.customerId = this.customerId;
-        this.getCustomerReport(rb);
-      }
-      if (this.reportTypeOption === "2") {
-        rb.commodityId = this.commodityId;
-        rb.inDateRange = false;
-        this.getCommodityReport(rb);
-      }
-      if (this.reportTypeOption === "3") {
-        this.getReport(rb);
+      switch (this.reportTypeOption) {
+        case "1":
+          console.log(rb);
+          rb.customerId = this.customerId;
+          this.getCustomerReport(rb);
+          break;
+        case "2":
+          rb.commodityId = this.commodityId;
+          rb.inDateRange = false;
+          this.getCommodityReport(rb);
+          break;
+        case "3":
+          this.getReport(rb);
+          break;
+        case "4":
+          rb.customerId = this.customerId;
+          rb.isLoading = true;
+          console.log(rb);
+          const { warehouseId, ...rest } = rb;
+          this.getCustomerReport(rest);
+          break;
+        default:
+          break;
       }
     },
     async getReport(rb) {
@@ -277,7 +315,6 @@ export default {
         if (this.reportType === 2) {
           response = await outwardServices.getByDate(rb);
         }
-        console.log(response);
         if (response instanceof Error) {
           throw response;
         }
@@ -299,13 +336,13 @@ export default {
       this.loading = true;
       try {
         const response = await inwardServices.getByDate(rb);
-        console.log(response);
         if (response instanceof Error) {
           throw response;
         }
         if (response.status === 200) {
           this.nodata = false;
           this.report = response.data;
+          this.loading = false;
         }
         if (response.status === 404) {
           this.nodata = true;

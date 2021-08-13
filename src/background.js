@@ -152,8 +152,8 @@ app.on("activate", () => {
   // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
-// const template = [{ label: "devtool", role: "toggleDevTools" }];
-const template = [];
+const template = [{ label: "devtool", role: "toggleDevTools" }];
+// const template = [];
 const menu = Menu.buildFromTemplate(template);
 Menu.setApplicationMenu(menu);
 // This method will be called when Electron has finished
