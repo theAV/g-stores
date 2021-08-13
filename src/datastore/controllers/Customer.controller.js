@@ -34,6 +34,53 @@ class Customer extends BaseController {
       return error;
     }
   }
+  async DeleteById(id) {
+    const t = await models.sequelize.transaction();
+    try {
+      await models.Customer.destroy({
+        where: {
+          id,
+        },
+        transaction: t,
+      });
+      await t.commit();
+      return this.sendCreateSuccess("Deleted successfully");
+    } catch (error) {
+      await t.rollback();
+      return error;
+    }
+  }
+
+  async EditCustomer(requestBody) {
+    const { firstName, lastName, pin, address, contact, id } = requestBody;
+    try {
+      const result = await models.Customer.findOne({
+        where: {
+          id,
+        },
+      });
+      if (isEmpty(result)) {
+        return this.noDataResponse();
+      }
+      await models.Customer.update(
+        {
+          firstName,
+          lastName,
+          pin,
+          address,
+          contact,
+        },
+        {
+          where: {
+            id: requestBody.id,
+          },
+        }
+      );
+      return this.sendCreateSuccess(`Record Updated`);
+    } catch (error) {
+      return error;
+    }
+  }
 }
 
 export default new Customer();

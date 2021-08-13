@@ -5,19 +5,15 @@
         ><v-icon class="mr-1">mdi-keyboard-backspace</v-icon> Back</v-btn
       >
       <v-spacer></v-spacer>
-      <v-btn color="primary" depressed @click="getPrint()"
+      <!-- <v-btn color="primary" depressed @click="getPrint()"
         ><v-icon class="mr-1">mdi-printer</v-icon> Print</v-btn
-      >
+      > -->
     </div>
     <v-card elevation="2" v-if="!isloading">
       <v-card-title class="px-7">Inward Details </v-card-title>
       <v-divider></v-divider>
       <div class="pa-7 text--primary text-capitalize">
         <v-row>
-          <!-- <v-col md="3">
-            <div>Lot Number</div>
-            <div>{{ inwardDetails.lotNumber }}</div>
-          </v-col> -->
           <v-col md="3">
             <div class="caption font-weight-regular">Customer Name</div>
             <div class="font-weight-medium">{{ getCustomerName }}</div>
@@ -35,28 +31,32 @@
             </div>
           </v-col>
           <v-col md="3">
-            <div class="caption font-weight-regular">Inward category</div>
+            <div class="caption font-weight-regular">Commodity category</div>
             <div class="font-weight-medium">
-              {{ inwardDetails.category.name }}
+              {{ inwardDetails.CommodityVariant.name }}
             </div>
           </v-col>
           <v-col md="3">
             <div class="caption font-weight-regular">Total Quantity</div>
             <div class="font-weight-medium">
-              {{ inwardDetails.totalQuantity }}
+              {{ inwardDetails.totalQuantity | maximumFractionDigits }}
               {{ inwardDetails.packagingType }}
             </div>
           </v-col>
           <v-col md="3">
             <div class="caption font-weight-regular">Average Weight</div>
             <div class="font-weight-medium">
-              {{ inwardDetails.averageWeight }} kg
+              {{
+                (inwardDetails.averageWeight ||
+                (inwardDetails.totalWeight * 100) / inwardDetails.totalQuantity) | maximumFractionDigits 
+              }}
+              kg
             </div>
           </v-col>
           <v-col md="3">
             <div class="caption font-weight-regular">Total Weight</div>
             <div class="font-weight-medium">
-              {{ inwardDetails.totalWeight }} quintal
+              {{ inwardDetails.totalWeight | maximumFractionDigits }} quintal
             </div>
           </v-col>
           <v-col md="3">
@@ -119,9 +119,16 @@
               {{ inwardDetails.driverName || "NA" }}
             </div>
           </v-col>
+          <v-col md="3" v-if="inwardDetails.isLoading">
+            <div class="caption font-weight-regular">Loading status</div>
+            <div class="font-weight-medium danger--text">
+              <span>Unloaded</span>
+            </div>
+          </v-col>
         </v-row>
       </div>
       <!-- <v-divider></v-divider> -->
+      <div v-show="!inwardDetails.isLoading">
       <div class="px-4 mt-5 pb-5">
         <h4 class="title">Locations</h4>
       </div>
@@ -131,6 +138,7 @@
           <template v-slot:default>
             <thead>
               <tr>
+                <th class="text-left">Warehouse</th>
                 <th class="text-left">Chamber</th>
                 <th class="text-left">Floor</th>
                 <th class="text-left">Rack</th>
@@ -140,15 +148,17 @@
             </thead>
             <tbody>
               <tr v-for="item in inwardDetails.inwardLocations" :key="item.id">
+                <td>{{ item.warehouse.name }}</td>
                 <td>{{ item.chamber.name }}</td>
                 <td>{{ item.floor.name }}</td>
                 <td>{{ item.rack.name }}</td>
-                <td>{{ item.quantity }} {{ inwardDetails.packagingType }}</td>
-                <td>{{ item.weight }}</td>
+                <td>{{ item.quantity | maximumFractionDigits }} {{ inwardDetails.packagingType }}</td>
+                <td>{{ item.weight | maximumFractionDigits}}</td>
               </tr>
             </tbody>
           </template>
         </v-simple-table>
+      </div>
       </div>
     </v-card>
   </section>

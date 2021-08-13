@@ -11,6 +11,7 @@ const commodityMixin = {
     async getCommodityList() {
       try {
         const response = await commodityServices.getCommodityList();
+        console.log(response);
         if (response instanceof Error) {
           throw response;
         }

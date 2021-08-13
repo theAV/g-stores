@@ -155,13 +155,21 @@ export default {
     quantity: null,
   },
   mixins: [warehouseMixin],
+  watch: {
+    weight: function (newVal) {
+      this.sourceWeight = newVal;
+    },
+    quantity: function (newVal) {
+      this.sourceQuantity = parseInt(newVal);
+    },
+  },
   created() {
     this.sourceWeight = this.weight;
     this.sourceQuantity = parseInt(this.quantity);
     this.getChamberLists(this.warehouseId);
     this.getWeight();
   },
-  destroyed(){
+  destroyed() {
     this.sourceWeight = 0;
     this.sourceQuantity = 0;
   },

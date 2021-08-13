@@ -1,12 +1,23 @@
+/* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
 "use strict";
 
-import { app, protocol, BrowserWindow, ipcMain } from "electron";
+import {
+  app,
+  protocol,
+  BrowserWindow,
+  ipcMain,
+  Menu,
+  globalShortcut,
+} from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 import BackupService from "./datastore/backup";
+import { autoUpdater } from "electron-updater";
 const path = require("path");
 const os = require("os");
 const isDevelopment = process.env.NODE_ENV !== "production";
+import exportFile from "./fileExport";
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -19,6 +30,8 @@ async function createWindow() {
   const win = new BrowserWindow({
     show: false,
     titleBarStyle: "hidden",
+    backgroundColor: "#3c4b64",
+    frame: true,
     webPreferences: {
       // Use pluginOptions.nodeIntegration, leave this alone
       // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
@@ -38,9 +51,54 @@ async function createWindow() {
   }
   win.maximize();
   win.show();
+  globalShortcut.register("CommandOrControl+Shift+D", () =>
+    win.webContents.openDevTools()
+  );
+  globalShortcut.register("CommandOrControl+R", () => win.webContents.reload());
   ipcMain.handle("CREATEBACKUP", async () => {
     return await BackupService.attach(win);
   });
+  function sendStatusToWindow(text) {
+    win.webContents.send("DOWNLOAD_STATUS", JSON.stringify(text));
+  }
+
+  autoUpdater.on("checking-for-update", () => {
+    sendStatusToWindow("Checking for update...");
+  });
+  autoUpdater.on("update-available", (info) => {
+    sendStatusToWindow({ ev: "update-available", ok: true, data: info });
+  });
+  autoUpdater.on("update-not-available", (info) => {
+    sendStatusToWindow({ ev: "update-not-available", ok: true, data: info });
+  });
+  autoUpdater.on("error", (err) => {
+    sendStatusToWindow({ ev: "error", ok: false, error: err });
+  });
+  autoUpdater.on("download-progress", (progressObj) => {
+    let log_message =
+      "Download speed: " +
+      Math.ceil(progressObj.bytesPerSecond / Math.pow(1024, 2)) +
+      "MB";
+    log_message =
+      log_message + " - Downloaded " + Math.ceil(progressObj.percent) + "%";
+    log_message =
+      log_message +
+      " (" +
+      Math.ceil(progressObj.transferred / Math.pow(1024, 2)) +
+      "MB /" +
+      Math.ceil(progressObj.total / Math.pow(1024, 2)) +
+      "MB )";
+    sendStatusToWindow({
+      ev: "download-progress",
+      ok: true,
+      data: log_message,
+    });
+  });
+  autoUpdater.on("update-downloaded", (info) => {
+    sendStatusToWindow({ ev: "update-downloaded", ok: true, data: info });
+  });
+  ipcMain.on("quitAndInstall", () => autoUpdater.quitAndInstall());
+  ipcMain.on("checkForUpdate", () => autoUpdater.checkForUpdates());
   ipcMain.on("print-window", (event, content) => {
     if (!printWindow) {
       printWindow = new BrowserWindow({
@@ -48,9 +106,9 @@ async function createWindow() {
         webPreferences: {
           nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
           contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION,
-        }
+        },
       });
-      const fileLocation = path.join(__static, 'print.html');
+      const fileLocation = path.join(__static, "print.html");
       printWindow.loadFile(fileLocation);
       printWindow.maximize();
       // cleanup
@@ -62,18 +120,21 @@ async function createWindow() {
       });
     }
   });
-  ipcMain.on("readyToPrint", event => {
+  ipcMain.on("readyToPrint", (event) => {
     const pdfPath = path.join(os.tmpdir(), "print.pdf");
     var options = {
       pageSize: {
         height: 210000,
-        width: 148000
+        width: 148000,
       },
     };
     printWindow.webContents.print(options, (success, errorType) => {
       if (!success) console.log(errorType);
       printWindow.close();
     });
+  });
+  ipcMain.on("exportFile", (event, data) => {
+    exportFile(data);
   });
 }
 app.allowRendererProcessReuse = false;
@@ -91,7 +152,10 @@ app.on("activate", () => {
   // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
-
+// const template = [{ label: "devtool", role: "toggleDevTools" }];
+const template = [];
+const menu = Menu.buildFromTemplate(template);
+Menu.setApplicationMenu(menu);
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.

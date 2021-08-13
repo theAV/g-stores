@@ -5,16 +5,6 @@
         <div class="d-flex flex-grow-1 align-center">
           <div class="title">Select a type</div>
           <div class="flex-grow-1"></div>
-          <!-- <div>
-            <v-btn
-              class="ml-3"
-              outlined
-              color="primary"
-              @click="currentStep = 1"
-            >
-              Change
-            </v-btn>
-          </div> -->
         </div>
       </template>
       <template slot="content">

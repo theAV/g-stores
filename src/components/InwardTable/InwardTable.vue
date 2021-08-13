@@ -1,174 +1,262 @@
 <template>
   <div>
-    <v-data-table
-      :headers="headers"
-      :items="inwardList"
-      :hide-default-footer="hideFooter"
-      class="elevation-1"
-    >
-      <template v-slot:[`item.actions`]="{ item }">
-        <v-menu bottom left>
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn icon v-bind="attrs" v-on="on">
-              <v-icon>mdi-dots-vertical</v-icon>
-            </v-btn>
-          </template>
+    <v-toolbar flat height="80" class="mb-5 elevation-1">
+      <slot name="toolbarcontent"></slot>
+      <export-menu
+        v-if="exportable"
+        :disabled="inwardList.length === 0"
+        :data-ref="$refs.table"
+        :title="title"
+        name="Inward Report"
+      ></export-menu>
+    </v-toolbar>
+    <v-card class="rounded-0">
+      <v-card-title>
+        <v-row>
+          <v-col md="3">
+            <v-text-field
+              v-model="search"
+              append-icon="mdi-magnify"
+              label="Search"
+              single-line
+              hide-details
+              outlined
+              dense
+              filled
+              width="300px"
+              clearable
+            ></v-text-field>
+          </v-col>
+          <v-col md="9">
+            <v-checkbox
+              class="d-inline-flex"
+              v-model="showLoadingOnly"
+              label="Show unloaded"
+              hide-details
+              dense
+            ></v-checkbox>
+          </v-col>
+        </v-row>
+      </v-card-title>
+      <v-divider></v-divider>
+      <div ref="table">
+        <v-data-table
+          :headers="headers"
+          :items="inwardList"
+          :loading="isLoading"
+          :hide-default-footer="hideFooter"
+          disable-pagination
+          class="fluid-table"
+          :item-class="rowClassesObject"
+          :search="search"
+        >
+          <template v-slot:[`item.actions`]="{ item }">
+            <v-menu bottom left>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn icon v-bind="attrs" v-on="on">
+                  <v-icon>mdi-dots-vertical</v-icon>
+                </v-btn>
+              </template>
 
-          <v-list nav>
-            <v-list-item link>
-              <v-list-item-title>
-                <router-link
-                  class="text-decoration-none"
-                  :to="{ name: 'inwardDetails', params: { inwardId: item.id } }"
-                  >View Details</router-link
+              <v-list nav dense>
+                <v-list-item @click="gotoInwardDetails(item.id)">
+                  <v-list-item-title>View Details</v-list-item-title>
+                </v-list-item>
+                <v-list-item
+                  v-if="item.isLoading"
+                  @click="openUnloadLocationSheet(item)"
                 >
-              </v-list-item-title>
-            </v-list-item>
-            <v-list-item @click="openConfirmationDialog" v-if="item.isLoading">
-              <v-list-item-title>Unload</v-list-item-title>
-            </v-list-item>
-            <v-list-item link>
-              <v-list-item-title>Change Deal Type</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </template>
-      <template v-slot:[`item.customer`]="{ item }">
-        {{ item.customer.firstName }} {{ item.customer.lastName }}
-      </template>
-      <template v-slot:[`item.commodity`]="{ item }">
-        {{ item.commodity.name || "--" }}
-      </template>
-      <template v-slot:[`item.category`]="{ item }">
-        {{ item.category.name || "--" }}
-      </template>
-      <template v-slot:[`item.inwardDate`]="{ item }">
-        {{ item.inwardDate | formatDate }}
-      </template>
-
-      <template v-slot:[`item.inwardDeals`]="{ item }">
-        {{ item.inwardDeals.find((row) => row.isActive).dealType.name }}
-      </template>
-      <template v-slot:[`item.isLoading`]="{ item }">
-        <span v-if="item.isLoading" class="danger--text">Loading</span>
-        <span v-else>in Racks</span>
-      </template>
-    </v-data-table>
-    <v-dialog v-model="confirmationDialog" max-width="290" persistent>
-      <v-card>
-        <div class="text-center px-6 py-8">
-          Are you sure, you want to unload?
-        </div>
-
-        <v-card-actions>
-          <v-spacer></v-spacer>
-
-          <v-btn
-            color="danger darken-1"
-            text
-            @click="confirmationDialog = false"
-          >
-            Disagree
-          </v-btn>
-
-          <v-btn color="primary darken-1" text @click="dialog = false">
-            Agree
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+                  <v-list-item-title>Unload</v-list-item-title>
+                </v-list-item>
+                <!-- <v-list-item
+              v-if="!item.isLoading"
+              @click="openTransferSheet(item.id)"
+            >
+              <v-list-item-title>Transfer</v-list-item-title>
+            </v-list-item> -->
+                <v-list-item @click="deleteInward(item.id)">
+                  <v-list-item-title>Delete</v-list-item-title>
+                </v-list-item>
+                <v-list-item>
+                  <v-list-item-title>Change Deal Type</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+          </template>
+          <template v-slot:[`item.inwardDate`]="{ item }">
+            {{ item.inwardDate | formatDate }}
+          </template>
+          <!-- <template v-slot:[`item.customer`]="{ item }">
+            <v-icon v-if="!item.customer" color="danger"
+              >mdi-alert-circle</v-icon
+            >
+            <span v-else v-text="item.customer.firstName"></span>
+          </template> -->
+          <template v-slot:[`item.balanceWeight`]="{ item }">
+            {{ item.balanceWeight | maximumFractionDigits }}
+          </template>
+          <template v-slot:[`item.totalQuantity`]="{ item }">
+            {{ item.totalQuantity | maximumFractionDigits }}
+          </template>
+          <!-- footer -->
+          <template slot="body.append">
+            <tr class="text-bold">
+              <th></th>
+              <th></th>
+              <th></th>
+              <th></th>
+              <th class="text-right">
+                {{ sumField("totalQuantity") | maximumFractionDigits }}
+              </th>
+              <th class="text-right">
+                {{ sumField("totalWeight") | maximumFractionDigits }}
+              </th>
+              <th class="text-right">
+                {{ sumField("balanceQuantity") | maximumFractionDigits }}
+              </th>
+              <th class="text-right">
+                {{ sumField("balanceWeight") | maximumFractionDigits }}
+              </th>
+              <th></th>
+              <th></th>
+              <th></th>
+              <th class="hide-in-print"></th>
+            </tr>
+          </template>
+        </v-data-table>
+      </div>
+      <confirmation-modal type="delete" ref="confirmationDialogRef">
+        <template v-slot:msg>
+          <h3 class="mb-6">Are you sure?</h3>
+          <p>
+            Do you really want to delete this item? This process cannot be
+            undone.
+          </p>
+        </template>
+      </confirmation-modal>
+      <unload-component></unload-component>
+      <transfer-component></transfer-component>
+    </v-card>
   </div>
 </template>
 
 <script>
-import inwardMixin from "@/mixins/inward";
+import inwardServices from "@/services/inward";
+import baseMixin from "@/mixins/base";
+import UnloadComponent from "../Unload/Unload";
+import TransferComponent from "../Transfer/Transfer";
+import ConfirmationModal from "../Confirmation/Confirmation";
+import EventBus from "@/event";
+import ExportMenu from "@/components/ExportMenu/ExportMenu";
 export default {
   name: "InwardTable",
+  components: {
+    ConfirmationModal,
+    UnloadComponent,
+    TransferComponent,
+    ExportMenu,
+  },
   data: () => ({
     confirmationDialog: false,
+    search: "",
+    showLoadingOnly: "",
     headers: [
       {
-        text: "Receipt Number",
+        text: "R. No.",
         align: "start",
         sortable: false,
         value: "receiptNumber",
       },
       {
-        text: "Customer",
-        align: "start",
-        sortable: true,
-        value: "customer",
-      },
-      {
-        text: "Commodity",
-        align: "start",
-        sortable: false,
-        value: "commodity",
-      },
-      {
-        text: "Category",
-        align: "start",
-        sortable: false,
-        value: "category",
-      },
-      {
-        text: "Inward Date",
+        text: "Date",
         align: "start",
         sortable: false,
         value: "inwardDate",
       },
       {
-        text: "Deal type",
+        text: "Customer",
         align: "start",
         sortable: false,
-        value: "inwardDeals",
+        value: "customer.firstName",
       },
       {
-        text: "Loading Status",
+        text: "Address",
         align: "start",
         sortable: false,
-        value: "isLoading",
+        value: "customer.address",
+        class: "small-cell",
+        cellClass: "small-cell",
       },
       {
-        text: "Packaging",
-        align: "start",
-        value: "packagingType",
-      },
-      {
-        text: "Total Quantity",
+        text: "Quantity",
         align: "end",
-        sortable: true,
+        sortable: false,
         value: "totalQuantity",
+        class: "small-cell",
+        cellClass: "small-cell",
       },
       {
-        text: "Total Weight (Quintal)",
+        text: "Weight",
         align: "end",
-        sortable: true,
+        sortable: false,
         value: "totalWeight",
       },
       {
-        text: "Balance Quantity",
+        text: "Bal Quantity",
         align: "end",
-        sortable: true,
+        sortable: false,
         value: "balanceQuantity",
       },
       {
-        text: "Balance Weight (Quintal)",
+        text: "Bal Weight",
         align: "end",
-        sortable: true,
+        sortable: false,
         value: "balanceWeight",
       },
       {
-        text: "actions",
+        text: "Commodity",
+        align: "start",
+        sortable: false,
+        value: "commodity.name",
+      },
+      {
+        text: "Variant",
+        align: "start",
+        sortable: false,
+        value: "CommodityVariant.name",
+      },
+      {
+        text: "Vehicle No.",
+        align: "start",
+        sortable: false,
+        value: "vehicleNo",
+        cellClass: "text-uppercase",
+      },
+      {
+        text: "",
         value: "actions",
         align: "end",
         sortable: false,
+        cellClass: "hide-in-print",
+        class: "hide-in-print",
       },
     ],
+    inwardList: [],
+    inwardListBkp: [],
+    isLoading: false,
   }),
-  mixins: [inwardMixin],
+  mixins: [baseMixin],
   mounted() {
-    this.getInwardByLimit(this.listLimit);
+    this.init();
+  },
+  watch: {
+    showLoadingOnly: async function (newVal) {
+      if (newVal) {
+        this.getUnloadedInwards();
+      } else {
+        this.init();
+      }
+    },
   },
   props: {
     listLimit: {
@@ -176,12 +264,108 @@ export default {
     },
     hideFooter: {
       type: Boolean,
+      default: true,
+    },
+    title: {
+      type: String,
+    },
+    details: {
+      type: String,
+    },
+    exportable: {
+      type: Boolean,
       default: false,
     },
   },
+  created() {
+    EventBus.$on("GET_INWARD_BY_DATE_RANGE", (rb) => {
+      this.getInwardByDateRange(rb);
+    });
+    EventBus.$on("REFRESH_INWARD_TABLE", () => {
+      this.refresh();
+    });
+  },
   methods: {
-    openConfirmationDialog() {
-      this.confirmationDialog = true;
+    openUnloadLocationSheet(data) {
+      EventBus.$emit("openUnloadLocationSheet", data);
+    },
+    openTransferSheet(data) {
+      EventBus.$emit("OPEN_TRANSFER_SHEET", data);
+    },
+    rowClassesObject(items) {
+      return items.isLoading ? "lighten-5 red" : "";
+    },
+    sumField(key) {
+      return this.inwardList.reduce((a, b) => a + (+b[key] || 0), 0);
+    },
+    init() {
+      this.getInwardByLimit(this.listLimit);
+    },
+    async getInwardByLimit(limit) {
+      this.isLoading = true;
+      this.inwardList = [];
+      try {
+        const response = await inwardServices.get({ limit });
+        this.handleResponse(response);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    async getUnloadedInwards() {
+      try {
+        this.isLoading = true;
+        this.inwardList = [];
+        const response = await inwardServices.getUnloadedInwards();
+        this.handleResponse(response);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    async deleteInward(id) {
+      this.$refs.confirmationDialogRef.confirm(
+        this.deleteAfterConfirm.bind(this, id)
+      );
+    },
+    async deleteAfterConfirm(id) {
+      const response = await inwardServices.deleteInward(id);
+      if (response.status === 200) {
+        this.showSnackBar(response.data.message, "success");
+        this.init();
+        EventBus.$emit("UPDATE_STOCK_CARD");
+      }
+    },
+    async getInwardByDateRange(requestBody) {
+      this.isLoading = true;
+      this.inwardList = [];
+      try {
+        const response = await inwardServices.getByDate(requestBody);
+        this.handleResponse(response);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    handleResponse(response) {
+      if (response instanceof Error) {
+        throw response;
+      }
+      if (response.status === 200) {
+        this.inwardList = response.data;
+      }
+    },
+    gotoInwardDetails(id) {
+      this.$router.push({
+        name: "inwardDetails",
+        params: { inwardId: id },
+      });
+    },
+    refresh() {
+      this.init();
     },
   },
 };

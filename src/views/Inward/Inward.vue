@@ -17,4 +17,8 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss">
+.v-toolbar__content .v-text-field__details {
+  display: none;
+}
+</style>

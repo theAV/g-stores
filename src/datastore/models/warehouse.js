@@ -22,7 +22,7 @@ class Warehouse extends Model {
         paranoid: true,
         modelName: "warehouse",
         defaultScope: {
-          order: [["name", "DESC"]],
+          order: [["name", "ASC"]],
         },
       }
     );

@@ -7,7 +7,10 @@
     </div>
 
     <v-card>
-      <h3 class="headline pa-4">Add new user</h3>
+      <h3 class="headline pa-4" v-if="isEditMode">
+        Update {{ $route.query.firstName }}
+      </h3>
+      <h3 class="headline pa-4" v-else>Add new user</h3>
       <v-divider></v-divider>
       <v-form class="px-4 py-8" @submit.prevent="onSubmit" ref="form">
         <v-row>
@@ -66,6 +69,7 @@
         <div class="d-flex flex-grow-1 align-center">
           <div class="flex-grow-1"></div>
           <v-btn
+            v-if="!isEditMode"
             :disabled="!formIsValid"
             class="mr-3"
             color="danger"
@@ -82,8 +86,10 @@
             depressed
             large
             width="180px"
-            >Submit</v-btn
           >
+            <span v-if="isEditMode">Update</span>
+            <span v-else>Submit</span>
+          </v-btn>
         </div>
       </v-form>
     </v-card>
@@ -109,6 +115,7 @@ export default {
       snackbar: false,
       snackbarText: "",
       submitting: false,
+      isEditMode: false,
     };
   },
   mixins: [baseMixin],
@@ -117,16 +124,33 @@ export default {
       return this.form.firstName && this.form.pin ? true : false;
     },
   },
+  created() {
+    const { editMode, firstName, lastName, pin, address, contact } =
+      this.$route.query;
+    this.isEditMode = editMode;
+    if (this.isEditMode) {
+      this.form = { firstName, lastName, pin, address, contact };
+    }
+  },
   methods: {
     async onSubmit() {
       try {
         this.submitting = true;
-        const response = await customerServices.post(this.form);
+        let response = null;
+        if (this.isEditMode) {
+          this.form.id = this.$route.query.id;
+          response = await customerServices.editCustomer(this.form);
+        } else {
+          response = await customerServices.post(this.form);
+        }
         if (response instanceof Error) {
           throw response;
         }
         if (response.ok) {
-          this.showSnackBar(response.data.message);
+          this.showSnackBar(response.data.message, "success");
+          if (this.isEditMode) {
+            return this.$router.back();
+          }
           this.reset();
         }
       } catch (error) {

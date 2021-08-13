@@ -5,7 +5,7 @@ import Floor from "./floor";
 import Rack from "./rack";
 import Stock from "./stock";
 import Customer from "./customer";
-import Category from "./category";
+import Category from "./commodity_variant";
 import Commodity from "./commodity";
 import Inward from "./inward";
 import InwardLocation from "./inward_location";
@@ -13,10 +13,14 @@ import Outward from "./outward";
 import OutwardLocation from "./outward_location";
 import DealType from "./deal_type";
 import InwardDeal from "./inward_deal";
+import CommodityCategory from "./commodity_category";
+import CommodityVariant from "./commodity_variant";
+const isDevelopment = process.env.NODE_ENV !== "production";
 
 let models = {};
 const sequelize = new Sequelize("wms", "root", "root", {
   dialect: "mysql",
+  logging: isDevelopment,
 });
 
 const isConnected = async () => {
@@ -45,6 +49,8 @@ models = {
   OutwardLocation: OutwardLocation.init(sequelize),
   DealType: DealType.init(sequelize),
   InwardDeal: InwardDeal.init(sequelize),
+  CommodityCategory: CommodityCategory.init(sequelize),
+  CommodityVariant: CommodityVariant.init(sequelize),
 };
 
 // Load model associations

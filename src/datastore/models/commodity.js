@@ -10,20 +10,21 @@ class Commodity extends Model {
           allowNull: false,
           unique: true,
         },
-        type: DataTypes.STRING,
       },
       {
         sequelize,
         paranoid: true,
         modelName: "commodity",
         defaultScope: {
-          order: [["name", "DESC"]],
+          order: [["name", "ASC"]],
         },
       }
     );
   }
   static associate(models) {
     this.hasMany(models.Inward);
+    this.hasMany(models.CommodityVariant);
+    this.belongsTo(models.CommodityCategory);
   }
 }
 export default Commodity;

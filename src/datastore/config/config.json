@@ -1,9 +1,9 @@
 {
   "development": {
-    "username": "root",
-    "password": "root",
-    "database": "wms",
-    "host": "127.0.0.1",
+    "username": "wmsrootroot",
+    "password": "rootroot",
+    "database": "wmswms",
+    "host": "db4free.net",
     "dialect": "mysql",
     "operatorsAliases": false
   },

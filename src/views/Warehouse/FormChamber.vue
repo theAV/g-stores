@@ -46,7 +46,7 @@
               <v-text-field
                 v-model="form.capacity"
                 :error-messages="errors"
-                :hint="`can not be exceeded more than  ${sourceCapacity} ton`"
+                :hint="`can not be exceeded more than  ${sourceCapacity} bag`"
                 :disabled="!sourceCapacity"
                 label="Please enter chamber capacity"
                 type="number"

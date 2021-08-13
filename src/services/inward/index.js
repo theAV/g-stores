@@ -7,7 +7,11 @@ const {
   GET_INWARD_BY_ID,
   GET_INWARD_BY_BALANCE,
   GET_INWARD_BY_DATE,
-  GET_INWARD_BY_RACK
+  GET_INWARD_BY_RACK,
+  DELETE_INWARD,
+  GET_INWARD_BY_COMMODITY,
+  UPDATE_LOCATION,
+  UNLOADED_INWARDS,
 } = eventConst;
 
 class InwardServices {
@@ -27,11 +31,23 @@ class InwardServices {
   getInwardById(id) {
     return ipc.invoke(GET_INWARD_BY_ID, id);
   }
-  getInwardByBalance() {
+  getCustomerListByBalance() {
     return ipc.invoke(GET_INWARD_BY_BALANCE);
   }
   getInwardByRack(rackId) {
     return ipc.invoke(GET_INWARD_BY_RACK, rackId);
+  }
+  getInwardByCommodity(requestbody = {}) {
+    return ipc.invoke(GET_INWARD_BY_COMMODITY, requestbody);
+  }
+  deleteInward(id) {
+    return ipc.invoke(DELETE_INWARD, id);
+  }
+  updateLocation(rb) {
+    return ipc.invoke(UPDATE_LOCATION, rb);
+  }
+  getUnloadedInwards() {
+    return ipc.invoke(UNLOADED_INWARDS);
   }
 }
 

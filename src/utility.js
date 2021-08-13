@@ -26,5 +26,25 @@ export const maximumFractionDigits = (value) => {
     .replace(/,/g, "");
 };
 
-export const getTodayDate = () => moment().format("YYYY-MM-DD");
+export const momentDateOrder = (dates) => {
+  return dates.sort((a, b) => {
+    return moment(a).diff(b);
+  });
+};
 
+export const computedDateFormattedMomentjs = (rangeDate = []) => {
+  let dates = [];
+  if (rangeDate.length) {
+    dates = rangeDate.map((date) => {
+      return moment(date).format("DD-MMMM-YYYY");
+    });
+  }
+  return momentDateOrder(dates).join(" ~ ");
+};
+
+export const getEpoch = (value) => moment(value).valueOf();
+
+export const getTodayDate = () =>
+  new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+    .toISOString()
+    .substr(0, 10);

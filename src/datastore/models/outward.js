@@ -6,13 +6,17 @@ class Outward extends Model {
     return super.init(
       {
         date: DataTypes.BIGINT,
+        receiptNumber: {
+          type: DataTypes.STRING,
+          allowNull: false,
+        },
       },
       {
         sequelize,
         paranoid: true,
         modelName: "outward",
         defaultScope: {
-          order: [["createdAt", "DESC"]],
+          order: [["date", "DESC"]],
         },
         hooks: {
           beforeValidate: function (instance) {

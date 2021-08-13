@@ -47,7 +47,7 @@ class Inward extends Model {
         paranoid: true,
         modelName: "inward",
         defaultScope: {
-          order: [["createdAt", "DESC"]],
+          order: [["inwardDate", "DESC"]],
         },
         hooks: {
           // afterCreate: function (instance) {

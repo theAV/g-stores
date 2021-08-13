@@ -91,7 +91,7 @@
                 v-model="form.capacity"
                 :error-messages="errors"
                 :disabled="!sourceCapacity"
-                :hint="`can not be exceeded more than  ${sourceCapacity} ton`"
+                :hint="`can not be exceeded more than  ${sourceCapacity} bag`"
                 label="Please enter rack capacity"
                 type="number"
                 outlined

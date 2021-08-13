@@ -1,7 +1,13 @@
 import { ipcRenderer as ipc } from "electron";
 import eventConst from "@/eventConst";
 
-const { CREATE_CUSTOMER, GET_CUSTOMER, GET_CUSTOMER_COUNT } = eventConst;
+const {
+  CREATE_CUSTOMER,
+  GET_CUSTOMER,
+  GET_CUSTOMER_COUNT,
+  DELETE_CUSTOMER,
+  EDIT_CUSTOMER,
+} = eventConst;
 
 class CustomerServices {
   post(requestbody) {
@@ -12,6 +18,12 @@ class CustomerServices {
   }
   getCount() {
     return ipc.invoke(GET_CUSTOMER_COUNT);
+  }
+  deleteCustomer(id) {
+    return ipc.invoke(DELETE_CUSTOMER, id);
+  }
+  editCustomer(requestBody) {
+    return ipc.invoke(EDIT_CUSTOMER, requestBody);
   }
 }
 

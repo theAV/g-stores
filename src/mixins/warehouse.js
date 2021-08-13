@@ -13,10 +13,10 @@ const warehouseMixin = {
     };
   },
   methods: {
-    async getWarehouseLists() {
+    async getWarehouseLists(rb) {
       this.warehouseList = [];
       try {
-        const warehouseResponse = await warehouseServices.get();
+        const warehouseResponse = await warehouseServices.get(rb);
         if (warehouseResponse.ok && warehouseResponse.data) {
           const { message, error } = warehouseResponse.data;
           if (message) {

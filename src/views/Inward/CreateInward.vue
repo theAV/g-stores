@@ -70,15 +70,32 @@
                   name="inward date"
                   rules="required"
                 >
-                  <v-text-field
-                    v-model="form.inwardDate"
-                    :error-messages="errors"
-                    :min="today"
-                    type="date"
-                    label="Select inward date"
-                    outlined
-                    required
-                  ></v-text-field>
+                  <v-menu
+                    v-model="rangePicker"
+                    :close-on-content-click="false"
+                    :nudge-right="0"
+                    transition="slide-y-transition"
+                    bottom
+                    min-width="auto"
+                  >
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-text-field
+                        v-model="computedDateFormattedMomentjs"
+                        :error-messages="errors"
+                        label="Select inward date"
+                        append-icon="mdi-calendar"
+                        readonly
+                        v-bind="attrs"
+                        v-on="on"
+                        required
+                        outlined
+                      ></v-text-field>
+                    </template>
+                    <v-date-picker
+                      @input="rangePicker = false"
+                      v-model="form.inwardDate"
+                    ></v-date-picker>
+                  </v-menu>
                 </validation-provider>
               </v-col>
               <v-col md="2">
@@ -96,22 +113,23 @@
                     label="Commodity*"
                     outlined
                     required
+                    @change="getVariantList(form.commodityId)"
                   ></v-select>
                 </validation-provider>
               </v-col>
               <v-col md="2">
                 <validation-provider
                   v-slot="{ errors }"
-                  name="Category"
+                  name="Variant"
                   rules="required"
                 >
                   <v-select
-                    v-model="form.categoryId"
-                    :items="categoryList"
+                    v-model="form.CommodityVariantId"
+                    :items="variantList"
                     :error-messages="errors"
                     item-value="id"
                     item-text="name"
-                    label="Category*"
+                    label="Variant*"
                     outlined
                     required
                   ></v-select>
@@ -298,7 +316,12 @@
               </v-col>
               <v-col md="2">
                 <v-btn
-                  :disabled="!form.warehouseId || !form.totalQuantity  || !form.totalWeight || isLocationAdded"
+                  :disabled="
+                    !form.warehouseId ||
+                    !form.totalQuantity ||
+                    !form.totalWeight ||
+                    isLocationAdded
+                  "
                   x-large
                   depressed
                   color="primary"
@@ -359,8 +382,9 @@
 
       <v-bottom-sheet v-model="locationSheet" persistent>
         <add-location-form
-          :quantity="form.totalQuantity"
-          :weight="form.totalWeight"
+          ref="locationFormRef"
+          :quantity="quantityForLocationSheet"
+          :weight="weightForLocationSheet"
           :warehouseId="form.warehouseId"
         ></add-location-form>
       </v-bottom-sheet>
@@ -377,12 +401,14 @@ import baseMixin from "@/mixins/base";
 import { getTodayDate, convertToQuintal } from "@/utility";
 import AddLocationForm from "./components/AddLocationForm";
 import { ValidationObserver, ValidationProvider } from "vee-validate";
+import commodityServices from "@/services/commodity";
 
 export default {
   components: { AddLocationForm, ValidationProvider, ValidationObserver },
   name: "CreateInward",
   data: () => ({
     today: getTodayDate(),
+    rangePicker: false,
     form: {
       averageWeight: "",
       customerId: "",
@@ -399,6 +425,7 @@ export default {
       marka: "",
     },
     locations: [],
+    variantList: [],
     contract: {},
     seasonal: {},
     dealType: 3,
@@ -421,6 +448,8 @@ export default {
       },
     ],
     isLocationAdded: false,
+    quantityForLocationSheet: 0,
+    weightForLocationSheet: 0,
   }),
   provide: function () {
     return {
@@ -433,10 +462,47 @@ export default {
   created() {
     this.getCustomerList();
     this.getCommodityList();
-    this.getCategoryList();
-    this.getWarehouseLists();
+    this.getWarehouseLists({ listOnly: true });
+  },
+  watch: {
+    "form.isLoading": function (newVal) {
+      if (newVal) {
+        this.isLocationAdded = true;
+        this.locations = [];
+        this.$refs.locationFormRef?.clear();
+        this.quantityForLocationSheet = 0;
+        this.weightForLocationSheet = 0;
+      } else {
+        this.isLocationAdded = false;
+      }
+    },
+  },
+  computed: {
+    computedDateFormattedMomentjs() {
+      return this.$options.filters.formatDate(
+        this.form.inwardDate,
+        "DD-MMMM-YYYY"
+      );
+    },
   },
   methods: {
+    async getVariantList(commodityId) {
+      this.variantList = [];
+      try {
+        const response = await commodityServices.getVariant(commodityId);
+        if (response instanceof Error) {
+          throw response;
+        }
+        if (response.status === 200) {
+          this.variantList = response.data;
+        }
+        if (response.status === 404) {
+          console.log("no data found");
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    },
     async onSubmit() {
       try {
         this.$refs.observer.validate().then(async (valid) => {
@@ -474,11 +540,15 @@ export default {
             locations,
             deal,
           };
-          console.log(rb);
           const response = await inwardServices.post(rb);
           if (response instanceof Error) throw response;
+          if (response.status === 302) {
+            console.log(response);
+            this.showSnackBar(response.data.message, "error");
+            return;
+          }
           if (response.status === 200) {
-            this.showSnackBar(response.data.message);
+            this.showSnackBar(response.data.message, "success");
             this.clearAll();
           }
         });
@@ -502,6 +572,8 @@ export default {
     showLocationSheet() {
       if (this.locationSheet) return;
       this.locationSheet = true;
+      this.quantityForLocationSheet = +this.form.totalQuantity;
+      this.weightForLocationSheet = +this.form.totalWeight;
     },
     locationAdded() {
       this.isLocationAdded = true;
@@ -514,7 +586,7 @@ export default {
         averageWeight: "",
         customerId: "",
         commodityId: "",
-        categoryId: "",
+        CommodityVariantId: "",
         driverName: "",
         inwardDate: getTodayDate(),
         isLoading: false,
@@ -532,6 +604,8 @@ export default {
       this.seasonal = {};
       this.dealType = 3;
       this.dealRate = "";
+      this.quantityForLocationSheet = 0;
+      this.weightForLocationSheet = 0;
     },
   },
 };

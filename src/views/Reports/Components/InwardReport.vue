@@ -1,119 +1,186 @@
 <template>
-  <section ref="reportTable">
+  <section>
     <v-divider></v-divider>
     <v-toolbar flat>
       <v-toolbar-title class="text-capitalize">Inward Report</v-toolbar-title>
       <v-divider class="mx-4" inset vertical></v-divider>
+      <v-checkbox
+        v-model="shouldShowLocation"
+        hide-details
+        label="Show Locations"
+      ></v-checkbox>
       <v-spacer></v-spacer>
-      <v-btn color="primary" depressed @click="print()">
-        <v-icon left dark> mdi-printer </v-icon>
-        Print
-      </v-btn>
+      <export-menu
+        :data-ref="dataRef"
+        :title="title"
+        :details="details"
+        name="Commodity Report"
+      ></export-menu>
     </v-toolbar>
     <v-divider></v-divider>
-    <v-data-table :headers="headers" :items="dataList" class="elevation-1">
-      <template v-slot:[`item.customer`]="{ item }">
-        <span class="text-capitalize"
-          >{{ item.customer.firstName }} {{ item.customer.lastName }}</span
-        >
-      </template>
-      <template v-slot:[`item.commodity`]="{ item }">
-        {{ item.commodity.name || "--" }}
-      </template>
-      <template v-slot:[`item.category`]="{ item }">
-        {{ item.category.name || "--" }}
-      </template>
-      <template v-slot:[`item.inwardDate`]="{ item }">
-        {{ item.inwardDate | formatDate }}
-      </template>
+    <div ref="reportTable">
+      <v-data-table
+        :calculate-widths="true"
+        :headers="headers"
+        disable-pagination
+        hide-default-footer
+        :items="dataList"
+        class="elevation-1"
+      >
+        <template v-slot:[`item.inwardDate`]="{ item }">
+          {{ item.inwardDate | formatDate }}
+        </template>
+        <template v-slot:[`item.totalQuantity`]="{ item }">
+          {{ item.totalQuantity | maximumFractionDigits }}
+        </template>
+        <template v-slot:[`item.totalWeight`]="{ item }">
+          {{ item.totalWeight | maximumFractionDigits }}
+        </template>
+        <template v-slot:[`item.chamber`]="{ item }">
+          <div
+            v-for="location in item.inwardLocations"
+            class="text-no-wrap"
+            :key="location.id"
+            v-text="location.chamber.name"
+          ></div>
+        </template>
+        <template v-slot:[`item.floor`]="{ item }">
+          <div
+            v-for="location in item.inwardLocations"
+            class="text-no-wrap"
+            :key="location.id"
+            v-text="location.floor.name"
+          ></div>
+        </template>
+        <template v-slot:[`item.rack`]="{ item }">
+          <div
+            v-for="location in item.inwardLocations"
+            class="text-no-wrap"
+            :key="location.id"
+            v-text="location.rack.name"
+          ></div>
+        </template>
+        <template v-slot:[`item.slots`]="{ item }">
+          <div
+            v-for="location in item.inwardLocations"
+            :key="location.id"
+            v-text="location.slots"
+          ></div>
+        </template>
 
-      <template v-slot:[`item.inwardDeals`]="{ item }">
-        {{ getDealTypeName(item.inwardDeals).dealType.name }}
-      </template>
-      <template v-slot:[`item.inwardLocations`]="{ item }">
-        <div
-          class="d-flex"
-          v-for="location in item.inwardLocations"
-          :key="location.id"
-        >
-          <span class="px-1" v-text="location.chamber.name"></span>
-          <span class="px-1" v-text="location.floor.name"></span>
-          <span class="px-1" v-text="location.rack.name"></span>
-          <span v-if="location.slots">, </span>
-          <span class="px-1" v-text="location.slots"></span>
-        </div>
-      </template>
-    </v-data-table>
+        <!-- footer -->
+        <template slot="body.append">
+          <tr class="text-bold">
+            <th class="text-right"></th>
+            <th class="text-right"></th>
+            <th class="text-right"></th>
+            <th class="text-right"></th>
+            <th class="text-right"></th>
+            <th class="text-right">
+              {{ sumField("totalQuantity") | maximumFractionDigits }}
+            </th>
+            <th class="text-right">
+              {{ sumField("totalWeight") | maximumFractionDigits }}
+            </th>
+            <th v-if="shouldShowLocation"></th>
+            <th v-if="shouldShowLocation"></th>
+            <th v-if="shouldShowLocation"></th>
+            <th v-if="shouldShowLocation"></th>
+          </tr>
+        </template>
+      </v-data-table>
+    </div>
   </section>
 </template>
 
 <script>
-import { sendCommandToWorker } from "@/services/print";
 export default {
+  components: {
+    ExportMenu: () => import("@/components/ExportMenu/ExportMenu"),
+  },
   data: () => ({
-    isPrint: false,
+    shouldShowLocation: false,
+    dataRef: null,
     headers: [
       {
         text: "Date",
         align: "start",
         sortable: true,
         value: "inwardDate",
+        class: "small-cell",
+        cellClass: "small-cell",
       },
       {
         text: "R. No.",
         align: "start",
         sortable: false,
         value: "receiptNumber",
+        class: "small-cell",
+        cellClass: "small-cell",
       },
       {
         text: "Customer",
         align: "start",
         sortable: false,
-        value: "customer",
+        value: "customer.firstName",
       },
       {
         text: "Commodity",
         align: "start",
         sortable: false,
-        value: "commodity",
+        value: "commodity.name",
       },
       {
-        text: "Category",
+        text: "Variant",
         align: "start",
         sortable: false,
-        value: "category",
+        value: "CommodityVariant.name",
       },
       {
-        text: "Deal type",
-        align: "start",
-        sortable: false,
-        value: "inwardDeals",
-      },
-      {
-        text: "Packaging",
-        align: "start",
-        sortable: false,
-        value: "packagingType",
-      },
-      {
-        text: "In Quantity",
+        text: "Quantity",
         align: "end",
         sortable: false,
         value: "totalQuantity",
+        class: "small-cell",
+        cellClass: "small-cell",
       },
       {
-        text: "In Weight (Qntl)",
+        text: "Weight",
         align: "end",
-        sortable: true,
+        sortable: false,
         value: "totalWeight",
+        class: "small-cell",
+        cellClass: "small-cell",
+      },
+    ],
+    locationHeaderObj: [
+      {
+        text: "Chamber",
+        sortable: false,
+        value: "chamber",
+        class: "small-cell",
+        cellClass: "small-cell",
       },
       {
-        text: "Location",
-        align: "start",
+        text: "Floor",
         sortable: false,
-        value: "inwardLocations",
-        class: "location-cell",
-        cellClass: "location-cell",
+        value: "floor",
+        class: "small-cell",
+        cellClass: "small-cell",
+      },
+      {
+        text: "Rack",
+        sortable: false,
+        value: "rack",
+        class: "small-cell",
+        cellClass: "small-cell",
+      },
+      {
+        text: "Slots",
+        sortable: false,
+        value: "slots",
+        class: "small-cell",
+        cellClass: "small-cell",
       },
     ],
   }),
@@ -128,18 +195,38 @@ export default {
       type: Array,
     },
   },
-  methods: {
-    getDealTypeName(value) {
-      return value.find((row) => row.isActive);
+  computed: {
+    title() {
+      return this.warehouse.name;
     },
-    print() {
-      sendCommandToWorker({
-        data: this.$refs.reportTable.querySelector("table").innerHTML,
-        title: this.warehouse.name,
-        details: `Inward report from ${this.$options.filters.formatDate(
-          this.dateRange[0]
-        )} to ${this.$options.filters.formatDate(this.dateRange[1])}`,
-      });
+    details() {
+      return `Inward report from ${this.$options.filters.formatDate(
+        this.dateRange[0]
+      )} to ${this.$options.filters.formatDate(this.dateRange[1])}`;
+    },
+  },
+  mounted() {
+    this.dataRef = this.$refs.reportTable;
+  },
+  watch: {
+    shouldShowLocation: function (newVal) {
+      if (!newVal) {
+        this.headers = this.headers.filter((item) => {
+          return (
+            item.text !== "Chamber" &&
+            item.text !== "Floor" &&
+            item.text !== "Rack" &&
+            item.text !== "Slots"
+          );
+        });
+      } else {
+        this.headers = [...this.headers, ...this.locationHeaderObj];
+      }
+    },
+  },
+  methods: {
+    sumField(key) {
+      return this.dataList.reduce((a, b) => a + (+b[key] || 0), 0);
     },
   },
 };

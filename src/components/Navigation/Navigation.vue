@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="navigation-wrapper">
     <v-list class="pa-0" shaped>
       <template v-for="item in items">
         <v-list-group
@@ -112,6 +112,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.navigation-wrapper {
+  height: calc(100% - 84px);
+  overflow: auto;
+}
 .custom-active.v-list-item--link {
   &:before {
     opacity: 0.05 !important;

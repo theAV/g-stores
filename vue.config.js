@@ -12,8 +12,20 @@ module.exports = {
       externals: ["sequelize", "mysql2"],
       nodeIntegration: true,
       builderOptions: {
-        // extraResources: ["src/datastore/db.js"],
+        productName: "G Stores",
+        appId: "com.glazelabs.gstores",
+        copyright: "Copyright © 2021 GlazeLabs",
+        win: {
+          target: ["nsis"],
+          icon: "build/icon.ico",
+        },
+        nsis: {
+          installerIcon: "build/icon.ico",
+          uninstallerIcon: "build/icon.ico",
+          uninstallDisplayName: "G Stores Uninstall",
+        },
       },
+      publish: ["github"],
     },
   },
 };

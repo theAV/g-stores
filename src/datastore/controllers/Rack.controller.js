@@ -26,7 +26,11 @@ class Rack extends BaseController {
             transaction: t,
           });
           const capacity = Number(item.capacity);
-          await models.Floor.increment('occupied', { by: capacity, where: { id: item.floorId }, transaction: t, })
+          await models.Floor.increment("occupied", {
+            by: capacity,
+            where: { id: item.floorId },
+            transaction: t,
+          });
           return {
             rackId: racks.id,
             floorId: item.floorId,
@@ -36,9 +40,9 @@ class Rack extends BaseController {
             stockWeight: 0,
           };
         } catch (error) {
-          return error
+          return error;
         }
-      })
+      });
 
       const rackQueryResult = await Promise.all(rackQuery);
       await models.Stock.bulkCreate(rackQueryResult, {
@@ -46,7 +50,6 @@ class Rack extends BaseController {
       });
       await t.commit();
       return this.sendCreateSuccess("Record added successfully");
-      
     } catch (error) {
       return error;
     }

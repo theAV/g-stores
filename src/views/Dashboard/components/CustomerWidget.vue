@@ -1,8 +1,8 @@
 <template>
   <v-card color="info" dark flat :height="height">
-    <v-card-title class="text-h5" v-if="count > 0" v-text="count">
+    <v-card-title class="text-h6" v-if="count > 0" v-text="count">
     </v-card-title>
-    <v-card-title class="text-h5" v-else>0</v-card-title>
+    <v-card-title class="text-h6" v-else>0</v-card-title>
     <v-card-subtitle class="white--text">Customers</v-card-subtitle>
   </v-card>
 </template>

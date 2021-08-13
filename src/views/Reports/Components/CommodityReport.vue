@@ -1,82 +1,133 @@
 <template>
-  <section ref="reportTable">
+  <section>
     <v-divider></v-divider>
     <v-toolbar flat>
       <v-toolbar-title class="text-capitalize">{{
-        dataList[0].commodity.name
+        commodityId === -1 ? "All" : dataList[0].commodityName
       }}</v-toolbar-title>
       <v-divider class="mx-4" inset vertical></v-divider>
       <v-spacer></v-spacer>
-      <v-btn color="primary" depressed @click="print()">
-        <v-icon left dark> mdi-printer </v-icon>
-        Print
-      </v-btn>
+      <export-menu
+        :data-ref="dataRef"
+        :title="title"
+        :details="details"
+        name="Commodity Report"
+      ></export-menu>
     </v-toolbar>
     <v-divider></v-divider>
-    <v-data-table :headers="headers" :items="dataList" class="elevation-1">
-      <template v-slot:[`item.inwardDate`]="{ item }">
-        {{ item.inwardDate | formatDate }}
-      </template>
-      <template v-slot:[`item.commodity`]="{ item }">
-        {{ item.commodity.name || "--" }}
-      </template>
-      <template v-slot:[`item.category`]="{ item }">
-        {{ item.category.name || "--" }}
-      </template>
-      <template v-slot:[`item.outwardQuantity`]="{ item }">
-        {{ item.totalQuantity - item.balanceQuantity }}
-      </template>
-      <template v-slot:[`item.outwardWeight`]="{ item }">
-        {{ item.totalWeight - item.balanceWeight }}
-      </template>
-      <template slot="body.append">
-        <tr>
-          <th class="text-right" colspan="5"></th>
-          <th class="text-right">{{ sumField("totalQuantity") }}</th>
-          <th class="text-right">{{ sumField("totalWeight") }}</th>
-          <th class="text-right">
-            {{ sumField("totalQuantity") - sumField("balanceQuantity") }}
+    <div ref="reportTable">
+      <v-data-table
+        :headers="headers"
+        :items="dataList"
+        hide-default-footer
+        disable-pagination
+        :sort-by="['commodityName']"
+        group-by="commodityName"
+        class="elevation-1 text-capitalize"
+      >
+        <template v-slot:[`group.header`]="{ items, isOpen, toggle }">
+          <th colspan="12">
+            <v-icon @click="toggle" class="hide-in-print"
+              >{{ isOpen ? "mdi-minus" : "mdi-plus" }}
+            </v-icon>
+            {{ items[0].commodityName }}
           </th>
-          <th class="text-right">
-            {{ sumField("totalWeight") - sumField("balanceWeight") }}
-          </th>
-          <th class="text-right">{{ sumField("balanceQuantity") }}</th>
-          <th class="text-right">{{ sumField("balanceWeight") }}</th>
-        </tr>
-      </template>
-    </v-data-table>
+        </template>
+        <template v-slot:[`item.serialNo`]="{ item, index }">
+          {{ index + 1 }}
+        </template>
+        <template v-slot:[`item.balanceQuantity`]="{ item }">
+          {{
+            (item.opQuantity + item.inQuantity - item.outwards)
+              | maximumFractionDigits
+          }}
+        </template>
+        <template v-slot:[`item.opQuantity`]="{ item }">
+          {{ item.opQuantity | maximumFractionDigits }}
+        </template>
+        <template v-slot:[`item.opWeight`]="{ item }">
+          {{ item.opWeight | maximumFractionDigits }}
+        </template>
+        <template v-slot:[`item.inWeight`]="{ item }">
+          {{ item.inWeight | maximumFractionDigits }}
+        </template>
+        <template v-slot:[`item.inQuantity`]="{ item }">
+          {{ item.inQuantity | maximumFractionDigits }}
+        </template>
+        <template v-slot:[`item.outwards`]="{ item }">
+          {{ item.outwards | maximumFractionDigits }}
+        </template>
+        <template v-slot:[`item.outwardsWeight`]="{ item }">
+          {{ item.outwardsWeight | maximumFractionDigits }}
+        </template>
+        <template v-slot:[`item.balanceWeight`]="{ item }">
+          {{
+            (item.opWeight + item.inWeight - item.outwardsWeight)
+              | maximumFractionDigits
+          }}
+        </template>
+        <!-- footer -->
+        <template slot="body.append">
+          <tr class="text-bold">
+            <th class="text-right"></th>
+            <th class="text-right"></th>
+            <th class="text-right"></th>
+            <th class="text-right">
+              {{ sumField("opQuantity") | maximumFractionDigits }}
+            </th>
+            <th class="text-right">
+              {{ sumField("opWeight") | maximumFractionDigits }}
+            </th>
+            <th class="text-right">
+              {{ sumField("inQuantity") | maximumFractionDigits }}
+            </th>
+            <th class="text-right">
+              {{ sumField("inWeight") | maximumFractionDigits }}
+            </th>
+            <th class="text-right">
+              {{ sumField("outwards") | maximumFractionDigits }}
+            </th>
+            <th class="text-right">
+              {{ sumField("outwardsWeight") | maximumFractionDigits }}
+            </th>
+            <th class="text-right">
+              {{ getBalanceQuantity() | maximumFractionDigits }}
+            </th>
+            <th class="text-right">
+              {{ getBalanceWeight() | maximumFractionDigits }}
+            </th>
+          </tr>
+        </template>
+      </v-data-table>
+    </div>
   </section>
 </template>
 
 <script>
-import { sendCommandToWorker } from "@/services/print";
 export default {
+  components: {
+    ExportMenu: () => import("@/components/ExportMenu/ExportMenu"),
+  },
   data: () => ({
     itemName: "",
     headers: [
       {
-        text: "Date",
-        align: "start",
-        sortable: true,
-        value: "inwardDate",
-      },
-      {
-        text: "R. No.",
+        text: "S. No.",
         align: "start",
         sortable: false,
-        value: "receiptNumber",
+        value: "serialNo",
       },
       {
         text: "Commodity",
         align: "start",
         sortable: false,
-        value: "commodity",
+        value: "commodityName",
       },
       {
-        text: "Category",
+        text: "variant",
         align: "start",
         sortable: false,
-        value: "category",
+        value: "variant",
       },
       {
         text: "Packaging",
@@ -85,28 +136,40 @@ export default {
         value: "packagingType",
       },
       {
+        text: "Op Quantity",
+        align: "end",
+        sortable: false,
+        value: "opQuantity",
+      },
+      {
+        text: "Op Weight",
+        align: "end",
+        sortable: false,
+        value: "opWeight",
+      },
+      {
         text: "In Quantity",
         align: "end",
         sortable: false,
-        value: "totalQuantity",
+        value: "inQuantity",
       },
       {
-        text: "In Weight (Qntl)",
+        text: "In Weight",
         align: "end",
         sortable: true,
-        value: "totalWeight",
+        value: "inWeight",
       },
       {
         text: "Out Quantity",
         align: "end",
         sortable: false,
-        value: "outwardQuantity",
+        value: "outwards",
       },
       {
-        text: "Out Weight (Qntl)",
+        text: "Out Weight",
         align: "end",
         sortable: true,
-        value: "outwardWeight",
+        value: "outwardsWeight",
       },
       {
         text: "Balance Quantity",
@@ -121,27 +184,56 @@ export default {
         value: "balanceWeight",
       },
     ],
+    dataRef: null,
   }),
   props: {
     dataList: {
       type: Array,
     },
+    warehouse: {
+      type: Object,
+    },
+    dateRange: {
+      type: Array,
+    },
+    commodityId: {
+      type: Number,
+    },
+  },
+  computed: {
+    title() {
+      return `${this.warehouse.name}<br/>${this.getCommodityName}`;
+    },
+    details() {
+      return `Commodity report from ${this.$options.filters.formatDate(
+        this.dateRange[0]
+      )} to ${this.$options.filters.formatDate(this.dateRange[1])}`;
+    },
+    getCommodityName() {
+      return this.commodityId === -1 ? "All" : this.dataList[0].commodityName;
+    },
+  },
+  mounted() {
+    this.dataRef = this.$refs.reportTable;
   },
   methods: {
     sumField(key) {
       return this.dataList.reduce((a, b) => a + (+b[key] || 0), 0);
     },
-    print() {
-      this.itemName = this.dataList[0].commodity.name;
-      sendCommandToWorker({
-        data: this.$refs.reportTable.querySelector("table").innerHTML,
-        title: this.itemName,
-        details: `Commodity Report`,
-      });
+    getBalanceQuantity() {
+      return this.dataList.reduce(
+        (a, b) =>
+          a + (+b["opQuantity"] + +b["inQuantity"] - +b["outwards"] || 0),
+        0
+      );
+    },
+    getBalanceWeight() {
+      return this.dataList.reduce(
+        (a, b) =>
+          a + (+b["opWeight"] + +b["inWeight"] - +b["outwardsWeight"] || 0),
+        0
+      );
     },
   },
 };
 </script>
-
-<style>
-</style>

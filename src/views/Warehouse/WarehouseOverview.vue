@@ -1,6 +1,7 @@
 <template>
   <div>
-    <template v-if="isDataAvailabel">
+    <div v-if="isLoading">Loading...</div>
+    <template v-if="isDataAvailabel && !isLoading">
       <div
         v-for="item in warehouseList"
         :key="item.id"
@@ -48,29 +49,54 @@
                         :value="
                           getPercent(getStock(floor.stocks), floor.capacity)
                         "
-                        color="primary accent-4"
+                        color="success accent-1"
                       ></v-progress-linear>
                     </div>
-                    <div class="rack-list">
+                    <div class="rack-list" v-if="floor.racks.length > 0">
                       <div>Racks</div>
                       <div class="d-flex">
-                        <span
-                          @click.stop="getInwardByRack(rack.id)"
-                          v-for="rack in floor.racks"
-                          :key="rack.id"
-                        >
-                          {{ rack.name }}
-                          <span
-                            :style="{
-                              height:
-                                getPercent(
-                                  rack.stock.stockQuantity,
-                                  rack.capacity
-                                ) + '%',
-                            }"
-                          >
+                        <template v-for="rack in floor.racks">
+                          <v-tooltip left :key="rack.id" v-if="rack.stock">
+                            <template v-slot:activator="{ on, attrs }">
+                              <span
+                                v-bind="attrs"
+                                v-on="on"
+                                @click.stop="
+                                  getInwardByRack(
+                                    item.name,
+                                    chamber.name,
+                                    floor.name,
+                                    rack.name,
+                                    rack.id
+                                  )
+                                "
+                              >
+                                <span class="rack-name">{{ rack.name }}</span>
+                                <span
+                                  :style="{
+                                    height:
+                                      getPercent(
+                                        rack.stock.stockQuantity,
+                                        rack.capacity
+                                      ) + '%',
+                                  }"
+                                >
+                                </span>
+                              </span>
+                            </template>
+                            <div>
+                              <div>
+                                Loaded: <b v-text="rack.stock.stockQuantity"></b>
+                              </div>
+                              <div>
+                                Capacity: <b v-text="rack.capacity"></b>
+                              </div>
+                            </div>
+                          </v-tooltip>
+                          <span v-else :key="rack.id">
+                            <span class="rack-name">{{ rack.name }}</span>
                           </span>
-                        </span>
+                        </template>
                       </div>
                     </div>
                     <v-divider class="my-5"></v-divider>
@@ -80,75 +106,10 @@
             </v-sheet>
           </v-col>
         </v-row>
-
-        <!-- <v-expansion-panels v-else focusable>
-          <v-expansion-panel v-for="chamber in item.chambers" :key="chamber.id">
-            <v-expansion-panel-header class="text-capitalize">
-              {{ chamber.name }}
-            </v-expansion-panel-header>
-            <v-expansion-panel-content class="pt-4">
-              <v-expansion-panels>
-                <v-alert
-                  outlined
-                  color="purple"
-                  text
-                  v-if="!chamber.floors.length"
-                >
-                  No floor(s) mapped yet. Please
-                  <span class="font-weight-bold"
-                    ><router-link :to="{ name: 'addWarehouseItem' }"
-                      >click here</router-link
-                    ></span
-                  >
-                  to map the new floor.
-                </v-alert>
-                <v-expansion-panel
-                  v-else
-                  v-for="floor in chamber.floors"
-                  :key="floor.id"
-                >
-                  <v-expansion-panel-header>
-                    {{ floor.name }}
-                  </v-expansion-panel-header>
-                  <v-expansion-panel-content class="pt-4">
-                    <v-expansion-panels>
-                      <v-alert
-                        outlined
-                        color="purple"
-                        text
-                        v-if="!floor.racks.length"
-                      >
-                        No Rack(s) mapped yet. Please
-                        <span class="font-weight-bold"
-                          ><router-link :to="{ name: 'addWarehouseItem' }"
-                            >click here</router-link
-                          ></span
-                        >
-                        to map the new rack.
-                      </v-alert>
-                      <v-col
-                        v-else
-                        md="3"
-                        v-for="rack in floor.racks"
-                        :key="rack.id"
-                      >
-                        <v-card elevation="2" class="text-capitalize pa-5">
-                          <p>{{ rack.name }}</p>
-                          <p>Capacity: {{ rack.capacity }}</p>
-                          <p>Stock: {{ getStock(rack.inwardLocations) }}</p>
-                        </v-card>
-                      </v-col>
-                    </v-expansion-panels>
-                  </v-expansion-panel-content>
-                </v-expansion-panel>
-              </v-expansion-panels>
-            </v-expansion-panel-content>
-          </v-expansion-panel>
-        </v-expansion-panels> -->
       </div>
     </template>
 
-    <template v-if="!isDataAvailabel">
+    <template v-if="!isDataAvailabel && !isLoading">
       <v-alert outlined color="purple" text>
         No warehouse mapped yet. Please
         <span class="font-weight-bold"
@@ -176,27 +137,39 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="dialog" max-width="800px">
+    <v-dialog v-model="dialog" scrollable max-width="800px">
       <v-card>
-        <h4 v-if="isNoInward" class="pa-5">No data available</h4>
-        <v-simple-table v-if="inwardList.length>0">
-          <template v-slot:default>
-            <thead>
-              <tr>
-                <th class="text-left">Customer</th>
-                <th class="text-left">Commodity</th>
-                <th class="text-left">Quantity</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="item in inwardList" :key="item.name">
-                <td>{{ item.inward.customer.firstName }}</td>
-                <td>{{ item.inward.commodity.name }}</td>
-                <td>{{ item.quantity }} bags</td>
-              </tr>
-            </tbody>
-          </template>
-        </v-simple-table>
+        <v-card-text style="max-height: 335px" class="px-0 pb-0">
+          <h4 v-if="isNoInward" class="pa-5">No data available</h4>
+          <div ref="reportTable">
+            <v-simple-table v-if="!isNoInward" class="text-capitalize">
+              <template v-slot:default>
+                <thead>
+                  <tr>
+                    <th class="text-left">Customer</th>
+                    <th class="text-left">Commodity</th>
+                    <th class="text-left">Quantity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="item in inwardList" :key="item.name">
+                    <template v-if="item.inward">
+                      <td>{{ item.inward.customer.firstName }}</td>
+                      <td>{{ item.inward.commodity.name }}</td>
+                      <td>{{ item.quantity }} bags</td>
+                    </template>
+                  </tr>
+                </tbody>
+              </template>
+            </v-simple-table>
+          </div>
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions class="justify-center pa-4">
+          <v-btn color="primary" depressed class="px-4" @click="print"
+            >Print</v-btn
+          >
+        </v-card-actions>
       </v-card>
     </v-dialog>
   </div>
@@ -206,17 +179,18 @@
 import warehouseServices from "@/services/warehouse";
 import inwardServices from "@/services/inward";
 import baseMixin from "@/mixins/base";
-import InwardTable from "@/components/InwardTable/InwardTable";
+import { sendCommandToWorker } from "@/services/print";
 export default {
   name: "WarehouseOverview",
-  components: { InwardTable },
   data: () => ({
     warehouseList: [],
     confirmationDialog: false,
     idToBeDeleted: null,
     dialog: false,
     inwardList: [],
-    isNoInward:false,
+    isNoInward: false,
+    isLoading: false,
+    clickedRackObj: {},
   }),
   computed: {
     isDataAvailabel() {
@@ -228,11 +202,15 @@ export default {
   },
   mixins: [baseMixin],
   methods: {
+    print() {
+      sendCommandToWorker({
+        data: this.$refs.reportTable.querySelector("table").innerHTML,
+        title: this.clickedRackObj.warehouse,
+        details: `Stock report for  ${this.clickedRackObj.chamber} ${this.clickedRackObj.floor} ${this.clickedRackObj.rack}`,
+      });
+    },
     getStock(list) {
       const stock = list.reduce((acc, value) => {
-        // if(value.floorId == 3){
-        //   console.log(value)
-        // }
         return +acc + +value.stockQuantity;
       }, 0);
       return stock;
@@ -242,28 +220,18 @@ export default {
       return percent.toFixed(2);
     },
     async getWarehouseLists() {
-      const warehouseResponse = await warehouseServices.get();
+      this.isLoading = true;
       try {
-        if (warehouseResponse.ok && warehouseResponse.data) {
-          const { message, error } = warehouseResponse.data;
-          if (message) {
-            console.log(message);
-            return;
-          }
-          if (error) {
-            console.log(error);
-            return;
-          }
-          this.warehouseList = warehouseResponse.data;
-        } else if (warehouseResponse.ok && warehouseResponse.errors) {
-          console.error(warehouseResponse.errors);
-        } else if (warehouseResponse instanceof Error) {
+        const warehouseResponse = await warehouseServices.get();
+        if (warehouseResponse instanceof Error) {
           throw warehouseResponse;
-        } else {
-          throw new Error("Somthing is not good;");
+        } else if (warehouseResponse.status === 200) {
+          this.warehouseList = warehouseResponse.data;
         }
       } catch (error) {
         console.error(error);
+      } finally {
+        this.isLoading = false;
       }
     },
     async deleteWarehouse() {
@@ -291,17 +259,27 @@ export default {
       this.idToBeDeleted = null;
       this.confirmationDialog = false;
     },
-    async getInwardByRack(id) {
+    async getInwardByRack(warehouse, ch, f, rackname, id) {
       this.isNoInward = false;
-      const result = await inwardServices.getInwardByRack(id);
-      console.log(result);
-      if(result.status === 404){
-        this.isNoInward = true;
+      this.clickedRackObj = {
+        warehouse: warehouse,
+        chamber: ch,
+        floor: f,
+        rack: rackname,
+      };
+      try {
+        const result = await inwardServices.getInwardByRack(id);
+        console.log(result);
+        if (result.status === 404) {
+          this.isNoInward = true;
+          this.dialog = true;
+          return;
+        }
+        this.inwardList = result.data;
         this.dialog = true;
-        return;
+      } catch (error) {
+        console.log(error);
       }
-      this.inwardList = result.data;
-      this.dialog = true;
     },
   },
 };
@@ -313,18 +291,22 @@ export default {
   display: flex;
   justify-content: space-between;
   .d-flex {
-    > span {
+    > span:not(.v-tooltip) {
       width: 40px;
       height: 90px;
       background-color: #f2f2f2;
       margin-left: 4px;
       margin-right: 4px;
       position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
       cursor: pointer;
-      > span {
+      > span:not(.rack-name):not(.v-tooltip) {
         position: absolute;
         width: 100%;
-        background-color: var(--v-primary-base);
+        background-color: var(--v-success-lighten1);
         bottom: 0;
         left: 0;
         height: 0;
@@ -332,5 +314,13 @@ export default {
       }
     }
   }
+}
+.rack-name {
+  display: flex;
+  transform: rotate(-90deg);
+  white-space: nowrap;
+  position: relative;
+  z-index: 1;
+  font-size: 12px;
 }
 </style>

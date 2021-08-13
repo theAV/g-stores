@@ -9,14 +9,14 @@
       </v-col>
       <v-col lg="3">
         <v-card color="warning" dark flat height="150px">
-          <v-card-title class="text-h5">9.823</v-card-title>
+          <v-card-title class="text-h6">9.823</v-card-title>
 
           <v-card-subtitle class="white--text">Members online</v-card-subtitle>
         </v-card>
       </v-col>
       <v-col lg="3">
         <v-card color="danger" dark flat height="150px">
-          <v-card-title class="text-h5">9.823</v-card-title>
+          <v-card-title class="text-h6">9.823</v-card-title>
 
           <v-card-subtitle class="white--text">Members online</v-card-subtitle>
         </v-card>
@@ -24,17 +24,13 @@
     </v-row>
 
     <section class="mt-8 text-capitalize">
-      <v-toolbar flat>
-        <v-toolbar-title>Recent Inwards</v-toolbar-title>
-        <v-divider class="mx-4" inset vertical></v-divider>
-        <v-spacer></v-spacer>
-        <v-btn color="primary" depressed @click="goToAddNew()">Add new</v-btn>
-      </v-toolbar>
-      <v-divider></v-divider>
-      <inward-table
-        :hide-footer="true"
-        :list-limit="20"
-      ></inward-table>
+      <inward-table :hide-footer="true" :list-limit="15">
+        <template v-slot:toolbarcontent>
+          <v-toolbar-title>Recent Inwards</v-toolbar-title>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" depressed @click="goToAddNew()">Add new</v-btn>
+        </template>
+      </inward-table>
     </section>
   </div>
 </template>

@@ -1,11 +1,30 @@
-@media print{
-    
-  @page { size: landscape; }
-
+// header {
+//   -webkit-user-select: none;
+//   -webkit-app-region: drag;
+// }
+@media print {
+  @page {
+    size: landscape;
+  }
 }
-.v-input .v-label{
-    pointer-events: none !important;
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #ddd;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(#3c4b64, 0.8);
+}
+
+.v-input .v-label {
+  pointer-events: none !important;
 }
 .fixedtable table {
-    table-layout: fixed;
-  }
+  table-layout: fixed;
+}
+.small-cell {
+  width: 100px;
+}

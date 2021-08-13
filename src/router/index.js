@@ -1,17 +1,9 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-// import Login from "../views/Login.vue";
-
-// import Warehouse from "../views/Warehouse/Warehouse.vue";
 
 Vue.use(VueRouter);
 
 const routes = [
-  // {
-  //   path: "/login",
-  //   name: "login",
-  //   component: Login,
-  // },
   {
     path: "/",
     name: "dashboard",
@@ -58,6 +50,14 @@ const routes = [
     children: [
       {
         path: "",
+        name: "outwardList",
+        component: () =>
+          import(
+            /* webpackChunkName: "outwardList" */ "../views/Outward/List.vue"
+          ),
+      },
+      {
+        path: "/create-outward",
         name: "createOutward",
         component: () =>
           import(

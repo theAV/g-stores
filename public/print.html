@@ -8,6 +8,10 @@
 
     <link rel="stylesheet" href="../node_modules/paper-css/paper.min.css">
     <style>
+        html {
+            height: 100%;
+        }
+
         * {
             box-sizing: border-box;
         }
@@ -20,8 +24,13 @@
         table {
             width: 100%;
             border-collapse: collapse;
+        }
+
+        .fixed-table table {
             table-layout: fixed;
         }
+
+
 
         td[colspan="6"] {
             padding: 0 !important;
@@ -35,6 +44,11 @@
             padding: 2px;
             font-weight: normal;
             text-align: left;
+        }
+
+        .text-bold th,
+        .text-bold td {
+            font-weight: bold;
         }
 
         .innerTable td {
@@ -73,28 +87,95 @@
             height: calc(100% - 13px);
         }
 
-        .location-cell {
-            width: 230px;
+        /* .location-cell {
+            width: 400px;
+        } */
+        .small-cell {
+            width: 100px;
+        }
+
+        tbody.nestedTable>tr>td[colspan] {
+            padding: 0;
+        }
+
+        .outward-cell {
+            padding: 0 !important;
+            border: none !important;
+        }
+
+        .outward-cell table tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .outward-cell table td:first-child,
+        .inward-row td:first-child {
+            border-left: none;
+        }
+
+        .outward-cell table td:last-child,
+        .inward-row td:last-child {
+            border-right: none;
+        }
+
+        .outward-cell table td:first-child {
+            padding-left: 15px;
+        }
+
+        .text-end {
+            text-align: right !important;
+        }
+
+        .hide-in-print {
+            display: none;
+        }
+
+        .text-uppercase {
+            text-transform: uppercase;
+        }
+        body.A4.landscape,
+        body.A4.landscape .sheet {
+            height: auto !important;
+        }
+        .outward-row td:first-child{
+            padding-left: 15px;
         }
     </style>
     <style media="print">
+        table {
+            page-break-inside: auto
+        }
+
+        tr {
+            page-break-inside: avoid;
+            page-break-after: always
+        }
+
+        thead {
+            display: table-header-group
+        }
+
+        tfoot {
+            display: table-footer-group
+        }
+
         .hide-print {
             display: none;
         }
 
         @page {
-            size: A4 landscape
+            size: A4 landscape;
+            margin: 30px 25px;
         }
-
-        @page {
-            margin: 0;
+        body.A4.landscape,
+        body.A4.landscape .sheet {
+            height: auto !important;
         }
     </style>
 
 </head>
 
-<body class="A4 landscape">
-
+<body>
+    <div style="text-align: center; padding: 10px;"><button onclick="print()" style="padding-left: 15px;padding-right: 15px;">Print</button></div>
     <div class="sheet padding-10mm">
         <div id="page">
             <div id="inwardReport">
@@ -165,18 +246,26 @@
         </div>
 
     </div>
+    <div style="text-align: center; padding: 10px;"><button onclick="print()" style="padding-left: 15px;padding-right: 15px;">Print</button></div>
 </body>
 <script>
     const ipcRenderer = require("electron").ipcRenderer;
-    let title = document.getElementById("title");
-    let subDetails = document.getElementById("subDetails");
-    ipcRenderer.on("printReport", (event, content) => {
-        console.log(content)
-        title.innerText = content.title;
+    ipcRenderer.on("printReport", async (event, content) => {
+        let title = document.getElementById("title");
+        let subDetails = document.getElementById("subDetails");
+        title.innerHTML = content.title;
         subDetails.innerText = content.details;
         document.querySelector('.innerTable').innerHTML = content.data;
-        // setTimeout(()=>{ipcRenderer.send("readyToPrint");}, 200)
+        if (content.isFixedTable) {
+            document.querySelector('body').classList.add("fixed-table");
+        } else {
+            document.querySelector('body').classList.remove("fixed-table");
+        }
+        // setTimeout(() => { ipcRenderer.send("readyToPrint"); }, 800);
     });
+    function print(){
+        ipcRenderer.send("readyToPrint")
+    }
 </script>
 
 </html>

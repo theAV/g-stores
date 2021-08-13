@@ -3,57 +3,54 @@ import { responder, isEmpty } from "@/datastore/helper";
 import BaseController from "./Base.controller";
 
 class Warehouse extends BaseController {
-  async Get() {
+  //**
+  // * @param {listOnly} if true returns only list of warehouse
+  // */
+  async Get(params) {
     try {
-      const result = await models.Warehouse.findAll({
-        include: [
-          {
-            model: models.Stock,
-          },
-          {
-            model: models.Chamber,
-            required: false,
-            attributes: ["id", "name", "capacity"],
-            include: [
-              {
-                model: models.Stock,
-                // attributes: [
-                //   [models.sequelize.fn('sum', models.sequelize.col('stockQuantity')), 'stock_quantity'],
-                //   [models.sequelize.fn('sum', models.sequelize.col('stockWeight')), 'stock_quantity'],
-                // ]
-              },
-              {
-                model: models.Floor,
-                required: false,
-                attributes: ["id", "name", "capacity"],
-                include: [
-                  {
-                    model: models.Stock,
-                    // attributes: [
-                    //   [models.sequelize.fn('sum', models.sequelize.col('stockQuantity')), 'stock_quantity'],
-                    //   [models.sequelize.fn('sum', models.sequelize.col('stockWeight')), 'stock_quantity'],
-                    // ],
-                    // raw: true,
-
-                  },
-                  {
-                    model: models.Rack,
-                    required: false,
-                    attributes: ["id", "name", "capacity"],
-                    include: {
-                      model: models.Stock,
-                      // attributes: [
-                      //   [models.sequelize.fn('sum', models.sequelize.col('stockQuantity')), 'stockQuantity'],
-                      //   [models.sequelize.fn('sum', models.sequelize.col('stockWeight')), 'stockWeight'],
-                      // ]
+      const { listOnly } = params;
+      let result = [];
+      if (listOnly) {
+        result = await models.Warehouse.findAll();
+      } else {
+        result = await models.Warehouse.findAll({
+          order: [
+            ["name", "ASC"],
+            [{ model: models.Chamber }, "name", "ASC"],
+            [{ model: models.Chamber }, { model: models.Floor }, "name", "ASC"],
+            [
+              { model: models.Chamber },
+              { model: models.Floor },
+              { model: models.Rack },
+              "name",
+              "ASC",
+            ],
+          ],
+          include: [
+            {
+              model: models.Chamber,
+              required: false,
+              attributes: ["id", "name", "capacity"],
+              include: [
+                {
+                  model: models.Floor,
+                  required: false,
+                  attributes: ["id", "name", "capacity"],
+                  include: [
+                    { model: models.Stock },
+                    {
+                      model: models.Rack,
+                      required: false,
+                      attributes: ["id", "name", "capacity"],
+                      include: [{ model: models.Stock }],
                     },
-                  },
-                ]
-              },
-            ]
-          },
-        ],
-      });
+                  ],
+                },
+              ],
+            },
+          ],
+        });
+      }
       if (isEmpty(result)) {
         return this.noDataResponse();
       }

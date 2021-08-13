@@ -2,8 +2,8 @@ import { ipcRenderer as ipc } from "electron";
 import eventConst from "@/eventConst";
 const { GET_WAREHOUSE, CREATE_WAREHOUSE, DELETE_WAREHOUSE } = eventConst;
 class WarehouseServices {
-  get() {
-    return ipc.invoke(GET_WAREHOUSE);
+  get(rb = {}) {
+    return ipc.invoke(GET_WAREHOUSE, rb);
   }
   post(requestbody) {
     return ipc.invoke(CREATE_WAREHOUSE, requestbody);
