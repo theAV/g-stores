@@ -67,6 +67,7 @@ export default {
     ExportMenu: () => import("@/components/ExportMenu/ExportMenu"),
   },
   data: () => ({
+    dataRef: null,
     headers: [
       {
         text: "Date",
@@ -107,7 +108,7 @@ export default {
         text: "Commodity",
         align: "start",
         sortable: false,
-        value: "inward.CommodityVariant.name",
+        value: "inward.commodity.name",
       },
       {
         text: "Variant",

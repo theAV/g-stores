@@ -4,7 +4,6 @@ import router from "./router";
 import VeeValidate from "vee-validate";
 
 import vuetify from "@/plugins/vuetify";
-import "@fortawesome/fontawesome-free/css/all.css";
 import "@mdi/font/css/materialdesignicons.css";
 import "./filters";
 import "./styles/styles.scss";

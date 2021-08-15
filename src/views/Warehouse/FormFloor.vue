@@ -107,11 +107,11 @@
                 <v-spacer></v-spacer>
 
                 <v-btn icon>
-                  <v-icon small>fa-edit</v-icon>
+                  <v-icon small>mdi-pencil-outline</v-icon>
                 </v-btn>
 
                 <v-btn icon @click="remove(item.name)">
-                  <v-icon small>fa-trash-alt</v-icon>
+                  <v-icon small>mdi-delete-outline</v-icon>
                 </v-btn>
               </v-card-actions>
             </v-card>

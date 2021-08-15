@@ -1,6 +1,6 @@
 {
   "name": "g-store",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "private": true,
   "author": {
     "name": "Glazelabs",
@@ -16,7 +16,7 @@
     "electron:build:all": "vue-cli-service electron:build --x64 --ia32",
     "electron:build": "vue-cli-service electron:build --x64",
     "electron:serve": "vue-cli-service electron:serve  --trace-warnings",
-    "electron:Publish": "set GH_TOKEN=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 && npm run electron:build:all -- -p always",
+    "electron:Publish": "npm run electron:build:all -- -p always",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps"
   },
