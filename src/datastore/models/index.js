@@ -15,10 +15,13 @@ import DealType from "./deal_type";
 import InwardDeal from "./inward_deal";
 import CommodityCategory from "./commodity_category";
 import CommodityVariant from "./commodity_variant";
+require('dotenv').config()
 const isDevelopment = process.env.NODE_ENV !== "production";
 
+
 let models = {};
-const sequelize = new Sequelize("wms", "root", "root", {
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, process.env.DB_PASSWORD, {
+  host: process.env.DB_HOST,
   dialect: "mysql",
   logging: isDevelopment,
 });
