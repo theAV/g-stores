@@ -58,10 +58,14 @@ export default {
       EventBus.$emit("DISAGREE_CONFIRMAION");
     },
     onAgree: async function () {
-      this.isProccessing = true;
-      await this.onAgreeCallback();
-      this.show = false;
-      this.isProccessing = false;
+      try {
+        this.isProccessing = true;
+        await this.onAgreeCallback();
+        this.show = false;
+        this.isProccessing = false;
+      } catch (error) {
+        console.log(error);
+      }
     },
     confirm: function (cb) {
       this.showDialog();

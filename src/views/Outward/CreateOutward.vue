@@ -96,7 +96,7 @@
       </v-data-table>
       <outward-dialog
         :outward-success-event="refresh"
-        :data-object="expanded[0]"
+        :data-object="expanded"
         :selected="selected"
         :disabled="selected.length === 0 ? true : false"
       ></outward-dialog>
@@ -211,9 +211,13 @@ export default {
     selected: function (newValue) {
       if (newValue.length > 0) {
         this.selected.forEach((elem) => {
-          elem.receiptNumber = this.customerInwardDetails.inwards.find(
-            (row) => row.id === elem.inwardId
-          ).receiptNumber;
+          const { receiptNumber, totalQuantity, totalWeight } =
+            this.customerInwardDetails.inwards.find(
+              (row) => row.id === elem.inwardId
+            );
+          elem.receiptNumber = receiptNumber;
+          elem.totalQuantity = totalQuantity;
+          elem.totalWeight = totalWeight;
         });
       }
     },

@@ -169,6 +169,7 @@ class Outward extends BaseController {
         where: {
           id,
         },
+        include: [models.OutwardLocation],
         transaction: t,
       });
       await models.Outward.destroy({
@@ -177,61 +178,73 @@ class Outward extends BaseController {
         },
         transaction: t,
       });
-      const outwardDetails = await models.OutwardLocation.findOne({
-        where: {
-          outwardId: id,
-        },
-        transaction: t,
-      });
-      const location = await models.InwardLocation.findOne({
-        where: {
-          id: outwardDetails.inwardLocationId,
-        },
-        transaction: t,
-      });
-      await models.InwardLocation.increment("quantity", {
-        by: outwardDetails.quantity,
-        where: {
-          id: outwardDetails.inwardLocationId,
-        },
-        transaction: t,
-      });
-      await models.InwardLocation.increment("weight", {
-        by: outwardDetails.weight,
-        where: {
-          id: outwardDetails.inwardLocationId,
-        },
-        transaction: t,
-      });
-      await models.Stock.increment("stockQuantity", {
-        by: outwardDetails.quantity,
-        where: {
-          rackId: location.rackId,
-        },
-        transaction: t,
-      });
-      await models.Stock.increment("stockWeight", {
-        by: outwardDetails.weight,
-        where: {
-          rackId: location.rackId,
-        },
-        transaction: t,
-      });
+      const outwardsLocPromise = outward.outwardLocations.map(async (outwrd) => {
+        try {
+          const { inwardLocationId, quantity, weight } = outwrd;
+          const { inwardId } = outward;
+          const location = await models.InwardLocation.findOne({
+            where: {
+              id: inwardLocationId,
+            },
+            transaction: t,
+          });
 
-      await models.Inward.increment("balanceQuantity", {
-        by: outwardDetails.quantity,
-        where: {
-          id: outward.inwardId,
-        },
-        transaction: t,
-      });
-      await models.Inward.increment("balanceWeight", {
-        by: outwardDetails.weight,
-        where: {
-          id: outward.inwardId,
-        },
-        transaction: t,
-      });
+
+          await models.InwardLocation.increment("quantity", {
+            by: quantity,
+            where: {
+              id: inwardLocationId,
+            },
+            transaction: t,
+          });
+          await models.InwardLocation.increment("weight", {
+            by: weight,
+            where: {
+              id: inwardLocationId,
+            },
+            transaction: t,
+          });
+
+          await models.Stock.increment("stockQuantity", {
+            by: quantity,
+            where: {
+              rackId: location.rackId,
+            },
+            transaction: t,
+          });
+          await models.Stock.increment("stockWeight", {
+            by: weight,
+            where: {
+              rackId: location.rackId,
+            },
+            transaction: t,
+          });
+
+          await models.Inward.increment("balanceQuantity", {
+            by: quantity,
+            where: {
+              id: inwardId,
+            },
+            transaction: t,
+          });
+          await models.Inward.increment("balanceWeight", {
+            by: weight,
+            where: {
+              id: inwardId,
+            },
+            transaction: t,
+          });
+        } catch (error) {
+          await t.rollback();
+          return error;
+        }
+
+      })
+
+
+      await Promise.all(outwardsLocPromise);
+
+
       await t.commit();
       return this.sendCreateSuccess("Deleted successfully");
     } catch (error) {

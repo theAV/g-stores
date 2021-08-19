@@ -128,7 +128,13 @@
                   <v-col md="6">
                     <v-text-field
                       label="Weight"
-                      :value="getWeight(location.quantity)"
+                      :value="
+                        getWeight(
+                          location.quantity,
+                          location.totalQuantity,
+                          location.totalWeight
+                        )
+                      "
                       type="number"
                       outlined
                       readonly
@@ -169,7 +175,7 @@ export default {
     return {
       datePicker: false,
       dialog: false,
-      data: {},
+      data: [],
       selectedObj: [],
       outwardDate: null,
       receiptNumber: null,
@@ -209,7 +215,7 @@ export default {
       default: false,
     },
     dataObject: {
-      type: Object,
+      type: Array,
     },
     selected: {
       type: Array,
@@ -227,9 +233,9 @@ export default {
       this.reset();
       this.dialog = false;
     },
-    getWeight(quantity) {
-      const totalWeightInKG = this.data.totalWeight * 100;
-      const averageWeight = totalWeightInKG / this.data.totalQuantity;
+    getWeight(quantity, totalQuantity, totalWeight) {
+      const totalWeightInKG = totalWeight * 100;
+      const averageWeight = totalWeightInKG / totalQuantity;
       return this.$options.filters.maximumFractionDigits(
         (averageWeight * quantity) / 100
       );
@@ -250,9 +256,9 @@ export default {
           const locations = this.selectedObj.map((row) => {
             const { locations, inwardId } = row;
             const locationObj = locations.map((item) => {
-              const { quantity, id, rack } = item;
+              const { quantity, id, rack, totalQuantity, totalWeight } = item;
               return {
-                weight: this.getWeight(quantity),
+                weight: this.getWeight(quantity, totalQuantity, totalWeight),
                 quantity,
                 inwardLocationId: id,
                 rackId: rack.id,

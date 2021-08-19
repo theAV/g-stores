@@ -251,11 +251,9 @@ class Inward extends BaseController {
     if (commodityId !== -1) {
       whereClause = { commodityId };
     }
-    if (inDateRange) {
-      whereClause.inwardDate = {
-        [models.Sequelize.Op.between]: [fromDate, lastDate],
-      };
-    }
+    whereClause.inwardDate = {
+      [models.Sequelize.Op.lte]: lastDate,
+    };
     try {
       const result = await models.Inward.findAll({
         where: {
@@ -325,7 +323,7 @@ class Inward extends BaseController {
         warehouseId,
       };
     }
-    if(isLoading){
+    if (isLoading) {
       locationWhere = {};
     }
     if (customerId) {
@@ -487,7 +485,7 @@ class Inward extends BaseController {
         where: {
           isLoading: true,
         },
-        include:[
+        include: [
           {
             model: models.Customer,
             attributes: ["id", "firstName", "lastName", "firmName", "address"],
@@ -495,7 +493,7 @@ class Inward extends BaseController {
           models.Commodity,
           models.Category,
         ]
-      },);
+      });
       if (isEmpty(result)) {
         return this.noDataResponse();
       }
@@ -505,10 +503,10 @@ class Inward extends BaseController {
       return error;
     }
   }
-  async getUnloadedStock(){
+  async getUnloadedStock() {
     try {
       const result = await models.Inward.findAll({
-        where:{
+        where: {
           isLoading: true
         },
         attributes: [

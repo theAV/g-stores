@@ -52,3 +52,11 @@ export const getTodayDate = () =>
   new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
     .toISOString()
     .substr(0, 10);
+
+
+export const getTotalOutwardsFromLocation = (arr, key) => {
+  const valueList = arr.map((row) => {
+    return row.outwardLocations.map((item) => item[key]);
+  });
+  return valueList.flat().flat().reduce((a, b) => a + (+b || 0), 0);
+}

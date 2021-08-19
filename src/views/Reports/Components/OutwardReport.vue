@@ -62,6 +62,7 @@
 </template>
 
 <script>
+import { getTotalOutwardsFromLocation } from "@/utility";
 export default {
   components: {
     ExportMenu: () => import("@/components/ExportMenu/ExportMenu"),
@@ -144,10 +145,7 @@ export default {
   },
   methods: {
     sumField(key) {
-      const valueList = this.dataList.map((row) => {
-        return row.outwardLocations.map((item) => item[key]);
-      });
-      return valueList.reduce((a, b) => a + (+b || 0), 0);
+      return getTotalOutwardsFromLocation(this.dataList, key);
     },
     getDealTypeName(value) {
       return value.find((row) => row.isActive);

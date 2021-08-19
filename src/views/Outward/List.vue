@@ -149,7 +149,7 @@
 import warehouseServices from "@/services/warehouse";
 import outwardServices from "@/services/outward";
 import baseMixin from "@/mixins/base";
-import { computedDateFormattedMomentjs, getEpoch } from "@/utility";
+import { computedDateFormattedMomentjs, getEpoch, getTotalOutwardsFromLocation } from "@/utility";
 export default {
   data: () => {
     return {
@@ -246,10 +246,7 @@ export default {
   mixins: [baseMixin],
   methods: {
     sumField(key) {
-      const valueList = this.dataList.map((row) => {
-        return row.outwardLocations.map((item) => item[key]);
-      });
-      return valueList.reduce((a, b) => a + (+b || 0), 0);
+      return getTotalOutwardsFromLocation(this.dataList, key);
     },
     init() {
       this.getOutwards();
