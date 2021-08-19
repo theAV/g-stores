@@ -84,7 +84,6 @@
       :sort-by="['name']"
       group-by="commodity.name"
       :show-group-by="false"
-      hide-default-footer
     >
       <template v-slot:[`group.header`]="{ items, isOpen, toggle }">
         <th colspan="2">

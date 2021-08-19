@@ -82,6 +82,8 @@
             <th class="text-right">
               {{ sumField("totalWeight") | maximumFractionDigits }}
             </th>
+            <th></th>
+            <th></th>
             <th v-if="shouldShowLocation"></th>
             <th v-if="shouldShowLocation"></th>
             <th v-if="shouldShowLocation"></th>
@@ -156,6 +158,12 @@ export default {
         text: "Vehicle No.",
         sortable: false,
         value: "vehicleNo",
+        cellClass: "text-uppercase",
+      },
+      {
+        text: "Marka",
+        sortable: false,
+        value: "marka",
         cellClass: "text-uppercase",
       },
     ],

@@ -1,67 +1,59 @@
-/**
- * updater.js
- *
- * Please use manual update only when it is really required, otherwise please use recommended non-intrusive auto update.
- *
- * Import steps:
- * 1. create `updater.js` for the code snippet
- * 2. require `updater.js` for menu implementation, and set `checkForUpdates` callback from `updater` for the click property of `Check Updates...` MenuItem.
- */
-const { dialog } = require("electron");
-const { autoUpdater } = require("electron-updater");
+import { autoUpdater } from "electron-updater";
+let browserWindow = null;
 
-let updater;
-autoUpdater.autoDownload = false;
-
-autoUpdater.on("error", (error) => {
-  dialog.showErrorBox(
-    "Error: ",
-    error == null ? "unknown" : (error.stack || error).toString()
-  );
-});
-
-autoUpdater.on("update-available", () => {
-  dialog
-    .showMessageBox({
-      type: "info",
-      title: "Found Updates",
-      message: "Found updates, do you want update now?",
-      buttons: ["Sure", "No"],
-    })
-    .then((buttonIndex) => {
-      if (buttonIndex === 0) {
-        autoUpdater.downloadUpdate();
-      } else {
-        updater.enabled = true;
-        updater = null;
-      }
+class Updater {
+  init(win) {
+    browserWindow = win;
+    autoUpdater.on("checking-for-update", () => {
+      this.sendStatusToWindow("Checking for update...");
     });
-});
-
-autoUpdater.on("update-not-available", () => {
-  dialog.showMessageBox({
-    title: "No Updates",
-    message: "Current version is up-to-date.",
-  });
-  updater.enabled = true;
-  updater = null;
-});
-
-autoUpdater.on("update-downloaded", () => {
-  dialog
-    .showMessageBox({
-      title: "Install Updates",
-      message: "Updates downloaded, application will be quit for update...",
-    })
-    .then(() => {
-      setImmediate(() => autoUpdater.quitAndInstall());
+    autoUpdater.on("update-available", (info) => {
+      this.sendStatusToWindow({ ev: "update-available", ok: true, data: info });
     });
-});
-
-// export this to MenuItem click callback
-function checkForUpdates(menuItem, focusedWindow, event) {
-  updater = menuItem;
-  updater.enabled = false;
-  autoUpdater.checkForUpdates();
+    autoUpdater.on("update-not-available", (info) => {
+      this.sendStatusToWindow({ ev: "update-not-available", ok: true, data: info });
+    });
+    autoUpdater.on("error", (err) => {
+      this.sendStatusToWindow({ ev: "error", ok: false, error: err });
+    });
+    autoUpdater.on("download-progress", (progressObj) => {
+      let log_message =
+        "Download speed: " +
+        Math.ceil(progressObj.bytesPerSecond / Math.pow(1024, 2)) +
+        "MB";
+      log_message =
+        log_message + " - Downloaded " + Math.ceil(progressObj.percent) + "%";
+      log_message =
+        log_message +
+        " (" +
+        Math.ceil(progressObj.transferred / Math.pow(1024, 2)) +
+        "MB /" +
+        Math.ceil(progressObj.total / Math.pow(1024, 2)) +
+        "MB )";
+      this.sendStatusToWindow({
+        ev: "download-progress",
+        ok: true,
+        data: log_message,
+      });
+    });
+    autoUpdater.on("update-downloaded", (info) => {
+      this.sendStatusToWindow({ ev: "update-downloaded", ok: true, data: info });
+    });
+  }
+  sendStatusToWindow(text) {
+    browserWindow.webContents.send("DOWNLOAD_STATUS", JSON.stringify(text));
+  }
+  quitAndInstall() {
+    return autoUpdater.quitAndInstall();
+  }
+  checkForUpdates() {
+    return autoUpdater.checkForUpdates();
+  }
 }
-export default checkForUpdates;
+
+export default new Updater();
+// function sendStatusToWindow(text) {
+//   win.webContents.send("DOWNLOAD_STATUS", JSON.stringify(text));
+// }
+
+

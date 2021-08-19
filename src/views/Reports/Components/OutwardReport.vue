@@ -117,6 +117,12 @@ export default {
         sortable: false,
         value: "inward.CommodityVariant.name",
       },
+      {
+        text: "Marka",
+        sortable: false,
+        value: "inward.marka",
+        cellClass: "text-uppercase",
+      },
     ],
   }),
   props: {

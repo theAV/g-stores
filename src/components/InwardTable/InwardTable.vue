@@ -234,6 +234,13 @@ export default {
         cellClass: "text-uppercase",
       },
       {
+        text: "Marka",
+        align: "start",
+        sortable: false,
+        value: "marka",
+        cellClass: "text-uppercase",
+      },
+      {
         text: "",
         value: "actions",
         align: "end",

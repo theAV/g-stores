@@ -13,7 +13,8 @@ import {
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 import BackupService from "./datastore/backup";
-import { autoUpdater } from "electron-updater";
+import UpdaterService from "./updater";
+
 const path = require("path");
 const os = require("os");
 const isDevelopment = process.env.NODE_ENV !== "production";
@@ -58,47 +59,9 @@ async function createWindow() {
   ipcMain.handle("CREATEBACKUP", async () => {
     return await BackupService.attach(win);
   });
-  function sendStatusToWindow(text) {
-    win.webContents.send("DOWNLOAD_STATUS", JSON.stringify(text));
-  }
-
-  autoUpdater.on("checking-for-update", () => {
-    sendStatusToWindow("Checking for update...");
-  });
-  autoUpdater.on("update-available", (info) => {
-    sendStatusToWindow({ ev: "update-available", ok: true, data: info });
-  });
-  autoUpdater.on("update-not-available", (info) => {
-    sendStatusToWindow({ ev: "update-not-available", ok: true, data: info });
-  });
-  autoUpdater.on("error", (err) => {
-    sendStatusToWindow({ ev: "error", ok: false, error: err });
-  });
-  autoUpdater.on("download-progress", (progressObj) => {
-    let log_message =
-      "Download speed: " +
-      Math.ceil(progressObj.bytesPerSecond / Math.pow(1024, 2)) +
-      "MB";
-    log_message =
-      log_message + " - Downloaded " + Math.ceil(progressObj.percent) + "%";
-    log_message =
-      log_message +
-      " (" +
-      Math.ceil(progressObj.transferred / Math.pow(1024, 2)) +
-      "MB /" +
-      Math.ceil(progressObj.total / Math.pow(1024, 2)) +
-      "MB )";
-    sendStatusToWindow({
-      ev: "download-progress",
-      ok: true,
-      data: log_message,
-    });
-  });
-  autoUpdater.on("update-downloaded", (info) => {
-    sendStatusToWindow({ ev: "update-downloaded", ok: true, data: info });
-  });
-  ipcMain.on("quitAndInstall", () => autoUpdater.quitAndInstall());
-  ipcMain.on("checkForUpdate", () => autoUpdater.checkForUpdates());
+  UpdaterService.init(win);
+  ipcMain.on("quitAndInstall", () => UpdaterService.quitAndInstall());
+  ipcMain.on("checkForUpdate", () => UpdaterService.checkForUpdates());
   ipcMain.on("print-window", (event, content) => {
     if (!printWindow) {
       printWindow = new BrowserWindow({

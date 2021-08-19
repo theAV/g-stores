@@ -149,7 +149,11 @@
 import warehouseServices from "@/services/warehouse";
 import outwardServices from "@/services/outward";
 import baseMixin from "@/mixins/base";
-import { computedDateFormattedMomentjs, getEpoch, getTotalOutwardsFromLocation } from "@/utility";
+import {
+  computedDateFormattedMomentjs,
+  getEpoch,
+  getTotalOutwardsFromLocation,
+} from "@/utility";
 export default {
   data: () => {
     return {
@@ -210,6 +214,12 @@ export default {
           value: "inward.CommodityVariant.name",
         },
         {
+          text: "Marka",
+          align: "start",
+          sortable: false,
+          value: "inward.marka",
+        },
+        {
           text: "",
           align: "end",
           sortable: false,
@@ -234,13 +244,17 @@ export default {
       return computedDateFormattedMomentjs(this.rangeDate);
     },
     title() {
-      const warehouseName = this.warehouseList.find((row)=>row.id === this.warehouseId)?.name;
-      return this.warehouseId ? `${warehouseName}`: "Outward Report";
+      const warehouseName = this.warehouseList.find(
+        (row) => row.id === this.warehouseId
+      )?.name;
+      return this.warehouseId ? `${warehouseName}` : "Outward Report";
     },
     details() {
-      return this.rangeDate.length < 2? "" : `Outward report from ${this.$options.filters.formatDate(
-        this.rangeDate[0]
-      )} to ${this.$options.filters.formatDate(this.rangeDate[1])}`;;
+      return this.rangeDate.length < 2
+        ? ""
+        : `Outward report from ${this.$options.filters.formatDate(
+            this.rangeDate[0]
+          )} to ${this.$options.filters.formatDate(this.rangeDate[1])}`;
     },
   },
   mixins: [baseMixin],
@@ -271,17 +285,21 @@ export default {
       }
     },
     async getOutwards(inDateRange = false) {
-      this.dataList = [];
-      const rb = {
-        warehouseId: this.warehouseId,
-        inDateRange,
-        fromDate: getEpoch(this.rangeDate[0]),
-        lastDate: getEpoch(this.rangeDate[1]),
-      };
-      let response = await outwardServices.getByDate(rb);
-      if (response.status === 200) {
-        this.dataList = response.data;
-        this.dataRef = this.$refs.tablePrintRef;
+      try {
+        this.dataList = [];
+        const rb = {
+          warehouseId: this.warehouseId,
+          inDateRange,
+          fromDate: getEpoch(this.rangeDate[0]),
+          lastDate: getEpoch(this.rangeDate[1]),
+        };
+        let response = await outwardServices.getByDate(rb);
+        if (response.status === 200) {
+          this.dataList = response.data;
+          this.dataRef = this.$refs.tablePrintRef;
+        }
+      } catch (error) {
+        console.log(error);
       }
     },
     async deleteOutward(id) {
