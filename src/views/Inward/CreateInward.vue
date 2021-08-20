@@ -70,32 +70,13 @@
                   name="inward date"
                   rules="required"
                 >
-                  <v-menu
-                    v-model="rangePicker"
-                    :close-on-content-click="false"
-                    :nudge-right="0"
-                    transition="slide-y-transition"
-                    bottom
-                    min-width="auto"
-                  >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-text-field
-                        v-model="computedDateFormattedMomentjs"
-                        :error-messages="errors"
-                        label="Select inward date"
-                        append-icon="mdi-calendar"
-                        readonly
-                        v-bind="attrs"
-                        v-on="on"
-                        required
-                        outlined
-                      ></v-text-field>
-                    </template>
-                    <v-date-picker
-                      @input="rangePicker = false"
-                      v-model="form.inwardDate"
-                    ></v-date-picker>
-                  </v-menu>
+                  <date-picker
+                    v-model="form.inwardDate"
+                    outlined
+                    required
+                    :error-messages="errors"
+                    label="Select inward date"
+                  ></date-picker>
                 </validation-provider>
               </v-col>
               <v-col md="2">
@@ -371,7 +352,7 @@
             >
             <v-btn
               type="submit"
-              :disabled="invalid || !isLocationAdded"
+              :disabled="invalid"
               color="primary"
               width="180"
               depressed
@@ -401,16 +382,19 @@ import commodityMixin from "@/mixins/commodity";
 import warehouseMixin from "@/mixins/warehouse";
 import inwardServices from "@/services/inward";
 import baseMixin from "@/mixins/base";
-import { getTodayDate, convertToQuintal } from "@/utility";
-import AddLocationForm from "./components/AddLocationForm";
+import { convertToQuintal } from "@/utility";
 import { ValidationObserver, ValidationProvider } from "vee-validate";
 import commodityServices from "@/services/commodity";
-
+import DatePicker from "@/components/DatePicker/DatePicker";
 export default {
-  components: { AddLocationForm, ValidationProvider, ValidationObserver },
+  components: {
+    AddLocationForm: () => import("./components/AddLocationForm"),
+    ValidationProvider,
+    ValidationObserver,
+    DatePicker,
+  },
   name: "CreateInward",
   data: () => ({
-    today: getTodayDate(),
     rangePicker: false,
     submitting: false,
     form: {
@@ -419,7 +403,7 @@ export default {
       commodityId: "",
       categoryId: "",
       driverName: "",
-      inwardDate: getTodayDate(),
+      inwardDate: null,
       isLoading: false,
       packagingType: "bag",
       receiptNumber: null,
@@ -481,14 +465,6 @@ export default {
       }
     },
   },
-  computed: {
-    computedDateFormattedMomentjs() {
-      return this.$options.filters.formatDate(
-        this.form.inwardDate,
-        "DD-MMMM-YYYY"
-      );
-    },
-  },
   methods: {
     async getVariantList(commodityId) {
       this.variantList = [];
@@ -511,7 +487,10 @@ export default {
       try {
         this.$refs.observer.validate().then(async (valid) => {
           this.submitting = true;
-          if (!valid && !this.isLocationAdded) return;
+          /**
+           * !important: add switch for locations 
+           */
+          if (!valid) return;
           const { warehouseId, ...rest } = this.form;
           const locations = this.locations.map((item) => {
             return {
@@ -595,7 +574,7 @@ export default {
         commodityId: "",
         CommodityVariantId: "",
         driverName: "",
-        inwardDate: getTodayDate(),
+        inwardDate: null,
         isLoading: false,
         packagingType: "bag",
         receiptNumber: null,

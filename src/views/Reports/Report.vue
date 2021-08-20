@@ -93,28 +93,7 @@
               ></v-select>
             </v-col>
             <v-col md="3">
-              <v-menu
-                v-model="rangePicker"
-                :close-on-content-click="false"
-                :nudge-right="0"
-                transition="slide-y-transition"
-                bottom
-                min-width="auto"
-              >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-text-field
-                    v-model="computedDateFormattedMomentjs"
-                    label="Select date range"
-                    append-icon="mdi-calendar"
-                    readonly
-                    v-bind="attrs"
-                    v-on="on"
-                    outlined
-                    hide-details
-                  ></v-text-field>
-                </template>
-                <v-date-picker range v-model="rangeDate"></v-date-picker>
-              </v-menu>
+              <date-picker range v-model="rangeDate" outlined></date-picker>
             </v-col>
             <v-col md="3">
               <v-btn
@@ -178,13 +157,13 @@ import warehouseMixin from "@/mixins/warehouse";
 import customerMixins from "@/mixins/customer";
 import moment from "moment";
 import commodityServices from "@/services/commodity";
-import { computedDateFormattedMomentjs } from "@/utility";
 export default {
   components: {
     InwardReport: () => import("./Components/InwardReport"),
     CommodityReport: () => import("./Components/CommodityReport"),
     CustomerReport: () => import("./Components/CustomerReport"),
     OutwardReport: () => import("./Components/OutwardReport"),
+    DatePicker: () => import("@/components/DatePicker/DatePicker"),
   },
   name: "ReportComponent",
   mixins: [customerMixins, warehouseMixin],
@@ -196,9 +175,8 @@ export default {
     warehouseId: null,
     customerId: null,
     commodityId: null,
-    rangePicker: false,
     loading: false,
-    rangeDate: [new Date().toISOString().substr(0, 10)],
+    rangeDate: [],
     reportOption: [
       {
         id: 1,
@@ -213,12 +191,6 @@ export default {
     commoditylist: [{ id: -1, name: "All" }],
   }),
   computed: {
-    dateRangeText() {
-      return this.rangeDate.join(" ~ ");
-    },
-    computedDateFormattedMomentjs() {
-      return computedDateFormattedMomentjs(this.rangeDate);
-    },
     getWareHouse() {
       return this.warehouseList.find((i) => i.id === this.warehouseId);
     },

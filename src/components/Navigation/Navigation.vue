@@ -104,7 +104,7 @@ export default {
         href: "/reports",
         icon: "mdi-file-document-multiple-outline",
       },
-      { title: "Settings", href: "/settings", icon: "mdi-cog-outline" },
+      { title: "Billing", href: "/settings", icon: "mdi-receipt" },
       { title: "Help", href: "/help", icon: "mdi-help" },
     ],
   }),

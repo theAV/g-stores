@@ -1,5 +1,5 @@
 <template>
-  <v-card color="danger" dark flat :height="height">
+  <v-card color="danger" dark flat :height="height" class="bg-gradient-danger">
     <v-card-title class="text-h6">
       <span class="mr-1">{{
         total_stock_quantity | maximumFractionDigits
@@ -28,7 +28,7 @@ export default {
   props: {
     height: {
       type: String,
-      default: '150px'
+      default: "150px",
     },
   },
   created() {
@@ -43,7 +43,6 @@ export default {
           throw result;
         }
         if (result.status === 200) {
-            console.log(result.data);
           this.total_stock_quantity = result.data[0].total_stock_quantity;
           this.total_stock_weight = result.data[0].total_stock_weight;
         }
@@ -54,3 +53,11 @@ export default {
   },
 };
 </script>
+
+<style lang="scss" scoped>
+.bg-gradient-danger {
+  background: #d93737 !important;
+  background: linear-gradient(45deg, #e55353, #d93737) !important;
+  border-color: #d93737 !important;
+}
+</style>

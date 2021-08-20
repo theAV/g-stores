@@ -38,33 +38,13 @@
                     name="outward date"
                     rules="required"
                   >
-                    <v-menu
-                      v-model="datePicker"
-                      :close-on-content-click="false"
-                      :nudge-right="0"
-                      transition="slide-y-transition"
-                      bottom
-                      min-width="auto"
-                    >
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-text-field
-                          v-model="computedDateFormattedMomentjs"
-                          label="Select outward date"
-                          append-icon="mdi-calendar"
-                          readonly
-                          v-bind="attrs"
-                          v-on="on"
-                          required
-                          outlined
-                          hide-details="auto"
-                        ></v-text-field>
-                      </template>
-                      <v-date-picker
-                        :error-messages="errors"
-                        @input="datePicker = false"
-                        v-model="outwardDate"
-                      ></v-date-picker>
-                    </v-menu>
+                    <date-picker
+                      v-model="outwardDate"
+                      outlined
+                      required
+                      :error-messages="errors"
+                      label="Select outward date"
+                    ></date-picker>
                   </validation-provider>
                 </v-col>
                 <v-col md="6">
@@ -150,7 +130,7 @@
             <v-spacer></v-spacer>
             <v-btn
               type="submit"
-              :disabled="!computedDateFormattedMomentjs || invalid"
+              :disabled="invalid"
               color="primary"
               depressed
               :loading="creating"
@@ -168,9 +148,14 @@
 import outwardServices from "@/services/outward";
 import baseMixin from "@/mixins/base";
 import { ValidationObserver, ValidationProvider } from "vee-validate";
+import DatePicker from "@/components/DatePicker/DatePicker";
 export default {
   name: "OutwardDialog",
-  components: { ValidationProvider, ValidationObserver },
+  components: {
+    ValidationProvider,
+    ValidationObserver,
+    DatePicker,
+  },
   data: () => {
     return {
       datePicker: false,
@@ -219,11 +204,6 @@ export default {
     },
     selected: {
       type: Array,
-    },
-  },
-  computed: {
-    computedDateFormattedMomentjs() {
-      return this.$options.filters.formatDate(this.outwardDate, "DD-MMMM-YYYY");
     },
   },
   methods: {

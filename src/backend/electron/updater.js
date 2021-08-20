@@ -52,8 +52,6 @@ class Updater {
 }
 
 export default new Updater();
-// function sendStatusToWindow(text) {
-//   win.webContents.send("DOWNLOAD_STATUS", JSON.stringify(text));
-// }
+
 
 

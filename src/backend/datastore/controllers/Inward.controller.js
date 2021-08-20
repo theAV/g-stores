@@ -1,5 +1,5 @@
 import models from "../models";
-import { isEmpty } from "@/datastore/helper";
+import { isEmpty } from "@/backend/datastore/helper";
 import BaseController from "./Base.controller";
 import { getEpoch, generateLotNumber } from "../helper";
 class Inward extends BaseController {

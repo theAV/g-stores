@@ -12,13 +12,13 @@ import {
 } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
-import BackupService from "./datastore/backup";
-import UpdaterService from "./updater";
+import BackupService from "./backend/datastore/backup";
+import UpdaterService from "./backend/electron/updater";
 
 const path = require("path");
 const os = require("os");
 const isDevelopment = process.env.NODE_ENV !== "production";
-import exportFile from "./fileExport";
+import exportFile from "./backend/electron/fileExport";
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -115,8 +115,10 @@ app.on("activate", () => {
   // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
-const template = [{ label: "devtool", role: "toggleDevTools" }];
-// const template = [];
+let template = [];
+if (isDevelopment) {
+  template.push({ label: "devtool", role: "toggleDevTools" })
+}
 const menu = Menu.buildFromTemplate(template);
 Menu.setApplicationMenu(menu);
 // This method will be called when Electron has finished
@@ -133,7 +135,7 @@ app.on("ready", async () => {
   }
   createWindow();
   //registring all models here
-  require("./datastore/controllers");
+  require("./backend/datastore/controllers");
 });
 
 // Exit cleanly on request from parent process in development mode.

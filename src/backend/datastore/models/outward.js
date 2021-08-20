@@ -1,7 +1,7 @@
 "use strict";
 import { DataTypes, Model } from "sequelize";
 import { getEpoch } from "../helper";
-import { capitalize } from "../../utility";
+import { capitalize } from "../../../utility";
 class Outward extends Model {
   static init(sequelize) {
     return super.init(

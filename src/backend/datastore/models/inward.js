@@ -1,6 +1,6 @@
 "use strict";
 import { DataTypes, Model } from "sequelize";
-import { capitalize } from "../../utility";
+import { capitalize } from "../../../utility";
 class Inward extends Model {
   static init(sequelize) {
     return super.init(

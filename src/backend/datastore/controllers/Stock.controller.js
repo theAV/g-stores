@@ -1,6 +1,6 @@
 import BaseController from "./Base.controller";
 import models from "../models";
-import { isEmpty } from "@/datastore/helper";
+import { isEmpty } from "@/backend/datastore/helper";
 class Stock extends BaseController {
   constructor() {
     super();

@@ -1,5 +1,5 @@
 import { ipcMain } from "electron";
-import eventConst from "@/eventConst";
+import eventConst from "@/shared/eventConst";
 import warehouse from "./Warehouse.controller";
 import rack from "./Rack.controller";
 import floor from "./Floor.controller";

@@ -1,5 +1,5 @@
 import { ipcRenderer as ipc } from "electron";
-import eventConst from "@/eventConst";
+import eventConst from "@/shared/eventConst";
 const { CREATE_OUTWARD, GET_OUTWARD_BY_DATE, DELETE_OUTWARD_BY_ID } = eventConst;
 
 class OutwardServices {

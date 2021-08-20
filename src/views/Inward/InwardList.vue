@@ -20,27 +20,7 @@
               ></v-select>
             </v-col>
             <v-col md="4">
-              <v-menu
-                v-model="rangePicker"
-                :close-on-content-click="false"
-                :nudge-right="0"
-                transition="slide-y-transition"
-                bottom
-                min-width="auto"
-              >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-text-field
-                    v-model="computedDateFormattedMomentjs"
-                    label="Select date range"
-                    append-icon="mdi-calendar"
-                    readonly
-                    v-bind="attrs"
-                    v-on="on"
-                    hide-details
-                  ></v-text-field>
-                </template>
-                <v-date-picker range v-model="rangeDate"></v-date-picker>
-              </v-menu>
+              <date-picker range v-model="rangeDate"></date-picker>
             </v-col>
             <v-col md="4">
               <v-btn
@@ -73,16 +53,17 @@ import InwardTable from "@/components/InwardTable/InwardTable";
 import EventBus from "@/event";
 import warehouseServices from "@/services/warehouse";
 import baseMixin from "@/mixins/base";
-import { computedDateFormattedMomentjs } from "@/utility";
 import moment from "moment";
 
 export default {
   name: "InwardList",
-  components: { InwardTable },
+  components: {
+    InwardTable,
+    DatePicker: () => import("@/components/DatePicker/DatePicker")
+  },
   data: () => {
     return {
       warehouseId: null,
-      rangePicker: false,
       rangeDate: [],
       warehouseList: [],
     };
@@ -91,17 +72,18 @@ export default {
     this.getWarehouse();
   },
   computed: {
-    computedDateFormattedMomentjs() {
-      return computedDateFormattedMomentjs(this.rangeDate);
-    },
     title() {
-      const warehouseName = this.warehouseList.find((row)=>row.id === this.warehouseId)?.name;
-      return this.warehouseId ? `${warehouseName}`: "Inward Report";
+      const warehouseName = this.warehouseList.find(
+        (row) => row.id === this.warehouseId
+      )?.name;
+      return this.warehouseId ? `${warehouseName}` : "Inward Report";
     },
     details() {
-      return this.rangeDate.length < 2? "" : `Inward report from ${this.$options.filters.formatDate(
-        this.rangeDate[0]
-      )} to ${this.$options.filters.formatDate(this.rangeDate[1])}`;;
+      return this.rangeDate.length < 2
+        ? ""
+        : `Inward report from ${this.$options.filters.formatDate(
+            this.rangeDate[0]
+          )} to ${this.$options.filters.formatDate(this.rangeDate[1])}`;
     },
   },
   mixins: [baseMixin],

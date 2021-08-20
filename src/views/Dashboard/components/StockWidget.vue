@@ -1,5 +1,5 @@
 <template>
-  <v-card color="primary" dark flat :height="height">
+  <v-card color="primary" dark flat :height="height" class="bg-gradient-primary">
     <v-card-title class="text-h6">
       <span class="mr-1">{{
         total_stock_quantity | maximumFractionDigits
@@ -54,4 +54,10 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.bg-gradient-primary {
+  background: #1f1498 !important;
+  background: linear-gradient(45deg, #321fdb, #1f1498) !important;
+  border-color: #1f1498 !important;
+}
+</style>

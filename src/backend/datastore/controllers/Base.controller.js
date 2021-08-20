@@ -1,4 +1,4 @@
-import { responder, isEmpty } from "@/datastore/helper";
+import { responder, isEmpty } from "@/backend/datastore/helper";
 
 class BaseController {
   checkRequestBodyEmpty(rb) {

@@ -20,28 +20,7 @@
       <v-divider></v-divider>
       <footer-component></footer-component>
     </v-navigation-drawer>
-    <v-app-bar class="v-app-bar-border" app light flat short dense color="#fff">
-      <v-app-bar-nav-icon
-        @click.stop="sidebarMenu = !sidebarMenu"
-      ></v-app-bar-nav-icon>
-      <v-divider class="mr-2" inset vertical></v-divider>
-      <router-link
-        :to="{ name: 'createInward' }"
-        exact-active-class="primary--text"
-        class="px-2 grey--text text-decoration-none"
-        >Create Inward</router-link
-      >
-      <router-link
-        :to="{ name: 'createOutward' }"
-        exact-active-class="primary--text"
-        class="px-2 grey--text text-decoration-none"
-        >Create Outward</router-link
-      >
-      <div class="spacer"></div>
-      <backup-button></backup-button>
-      <updater></updater>
-    </v-app-bar>
-
+    <app-bar></app-bar>
     <v-main class="main">
       <v-container fluid>
         <router-view />
@@ -50,7 +29,6 @@
 
     <v-snackbar v-model="snackbar" :color="snackbarColor">
       {{ snackbarText }}
-
       <template v-slot:action="{ attrs }">
         <v-btn text v-bind="attrs" @click="snackbar = false"> Close </v-btn>
       </template>
@@ -60,13 +38,13 @@
 
 <script>
 import { version } from "../package.json";
+import AppBar from "./components/AppBar/AppBar";
 export default {
   name: "App",
   components: {
     Navigation: () => import("./components/Navigation/Navigation"),
-    Updater: () => import("./components/Updater/Updater"),
-    BackupButton: () => import("./components/BackupComponent/Backup"),
     FooterComponent: () => import("./components/Footer/Footer"),
+    AppBar,
   },
   data: () => ({
     sidebarMenu: true,
@@ -74,12 +52,12 @@ export default {
     snackbar: false,
     snackbarText: "",
     snackbarColor: null,
-    appVersion: null,
     version,
   }),
   provide: function () {
     return {
       showSnackBar: this.showSnackBar,
+      toggleSideMenu: this.toggleSideMenu,
     };
   },
   computed: {
@@ -93,6 +71,9 @@ export default {
       this.snackbarText = msg;
       this.snackbarColor = color;
     },
+    toggleSideMenu(){
+      this.sidebarMenu = !this.sidebarMenu;
+    }
   },
 };
 </script>

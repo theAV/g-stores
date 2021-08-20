@@ -38,12 +38,13 @@ export const momentDateOrder = (dates) => {
 
 export const computedDateFormattedMomentjs = (rangeDate = []) => {
   let dates = [];
-  if (rangeDate.length) {
+  if (Array.isArray(rangeDate)) {
     dates = rangeDate.map((date) => {
       return moment(date).format("DD-MMMM-YYYY");
     });
+    return momentDateOrder(dates).join(" ~ ");
   }
-  return momentDateOrder(dates).join(" ~ ");
+  return moment(rangeDate).format("DD-MMMM-YYYY");
 };
 
 export const getEpoch = (value) => moment(value).valueOf();

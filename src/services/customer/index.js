@@ -1,5 +1,5 @@
 import { ipcRenderer as ipc } from "electron";
-import eventConst from "@/eventConst";
+import eventConst from "@/shared/eventConst";
 
 const {
   CREATE_CUSTOMER,

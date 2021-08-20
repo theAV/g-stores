@@ -46,7 +46,7 @@
           :items="inwardList"
           :loading="isLoading"
           :hide-default-footer="hideFooter"
-          disable-pagination
+
           class="fluid-table"
           :item-class="rowClassesObject"
           :search="search"
@@ -69,12 +69,12 @@
                 >
                   <v-list-item-title>Unload</v-list-item-title>
                 </v-list-item>
-                <!-- <v-list-item
+                <v-list-item
               v-if="!item.isLoading"
               @click="openTransferSheet(item.id)"
             >
               <v-list-item-title>Transfer</v-list-item-title>
-            </v-list-item> -->
+            </v-list-item>
                 <v-list-item @click="deleteInward(item.id)">
                   <v-list-item-title>Delete</v-list-item-title>
                 </v-list-item>
@@ -87,19 +87,12 @@
           <template v-slot:[`item.inwardDate`]="{ item }">
             {{ item.inwardDate | formatDate }}
           </template>
-          <!-- <template v-slot:[`item.customer`]="{ item }">
-            <v-icon v-if="!item.customer" color="danger"
-              >mdi-alert-circle</v-icon
-            >
-            <span v-else v-text="item.customer.firstName"></span>
-          </template> -->
           <template v-slot:[`item.balanceWeight`]="{ item }">
             {{ item.balanceWeight | maximumFractionDigits }}
           </template>
           <template v-slot:[`item.totalQuantity`]="{ item }">
             {{ item.totalQuantity | maximumFractionDigits }}
           </template>
-          <!-- footer -->
           <template slot="body.append">
             <tr class="text-bold">
               <th></th>
@@ -272,7 +265,7 @@ export default {
     },
     hideFooter: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     title: {
       type: String,

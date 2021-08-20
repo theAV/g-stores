@@ -13,28 +13,7 @@
           ></v-select>
         </v-col>
         <v-col md="4" class="d-flex align-center">
-          <v-menu
-            v-model="rangePicker"
-            :close-on-content-click="false"
-            :nudge-right="0"
-            transition="slide-y-transition"
-            bottom
-            min-width="auto"
-          >
-            <template v-slot:activator="{ on, attrs }">
-              <v-text-field
-                :disabled="!warehouseId"
-                v-model="computedDateFormattedMomentjs"
-                label="Select date range"
-                append-icon="mdi-calendar"
-                readonly
-                v-bind="attrs"
-                v-on="on"
-                hide-details
-              ></v-text-field>
-            </template>
-            <v-date-picker range v-model="rangeDate"></v-date-picker>
-          </v-menu>
+          <date-picker range v-model="rangeDate"></date-picker>
         </v-col>
         <v-col md="3">
           <v-btn
@@ -83,9 +62,7 @@
       <v-divider></v-divider>
       <div ref="tablePrintRef">
         <v-data-table
-          :headers="headers"
-          hide-default-footer
-          disable-pagination
+          :headers="headers"          
           :items="dataList"
           :search="search"
         >
@@ -150,7 +127,6 @@ import warehouseServices from "@/services/warehouse";
 import outwardServices from "@/services/outward";
 import baseMixin from "@/mixins/base";
 import {
-  computedDateFormattedMomentjs,
   getEpoch,
   getTotalOutwardsFromLocation,
 } from "@/utility";
@@ -159,7 +135,6 @@ export default {
     return {
       warehouseId: null,
       search: "",
-      rangePicker: false,
       rangeDate: [],
       warehouseList: [],
       dataList: [],
@@ -233,6 +208,7 @@ export default {
   components: {
     ConfirmationModal: () => import("@/components/Confirmation/Confirmation"),
     ExportMenu: () => import("@/components/ExportMenu/ExportMenu"),
+    DatePicker: () => import("@/components/DatePicker/DatePicker")
   },
   created() {
     this.getWarehouse();
@@ -240,9 +216,6 @@ export default {
   },
 
   computed: {
-    computedDateFormattedMomentjs() {
-      return computedDateFormattedMomentjs(this.rangeDate);
-    },
     title() {
       const warehouseName = this.warehouseList.find(
         (row) => row.id === this.warehouseId

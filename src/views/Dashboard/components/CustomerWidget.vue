@@ -1,5 +1,5 @@
 <template>
-  <v-card color="info" dark flat :height="height">
+  <v-card color="info" dark flat :height="height" class="bg-gradient-info">
     <v-card-title class="text-h6" v-if="count > 0" v-text="count">
     </v-card-title>
     <v-card-title class="text-h6" v-else>0</v-card-title>
@@ -41,4 +41,10 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.bg-gradient-info {
+  background: #2982cc !important;
+  background: linear-gradient(45deg, #39f, #2982cc) !important;
+  border-color: #2982cc !important;
+}
+</style>
