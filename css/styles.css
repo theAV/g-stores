@@ -1,12 +1,9 @@
-// header {
-//   -webkit-user-select: none;
-//   -webkit-app-region: drag;
-// }
 @media print {
   @page {
     size: landscape;
   }
 }
+
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -16,21 +13,22 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(#3c4b64, 0.8);
+  background: rgba(60, 75, 100, 0.8);
 }
 
 .v-input .v-label {
   pointer-events: none !important;
 }
+
 .fixedtable table {
   table-layout: fixed;
 }
+
 .small-cell {
   width: 100px;
 }
-.v-data-table{
+
+.v-data-table {
   text-transform: capitalize;
 }
-.flex-gap-20{
-  gap: 20px;
-} 
+/*# sourceMappingURL=styles.css.map */

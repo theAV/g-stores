@@ -43,6 +43,7 @@ const warehouseMixin = {
       this.chamberList = [];
       let requestBody = {};
       requestBody.warehouseId = this.form?.warehouseId || warehouseId;
+      console.log(warehouseId)
       const chamberResponse = await chamberServices.get(requestBody);
       try {
         if (chamberResponse instanceof Error) {
