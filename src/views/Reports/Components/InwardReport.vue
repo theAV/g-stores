@@ -76,12 +76,14 @@
             <th class="text-right"></th>
             <th class="text-right"></th>
             <th class="text-right"></th>
+            <th></th>
             <th class="text-right">
               {{ sumField("totalQuantity") | maximumFractionDigits }}
             </th>
             <th class="text-right">
               {{ sumField("totalWeight") | maximumFractionDigits }}
             </th>
+            
             <th></th>
             <th></th>
             <th v-if="shouldShowLocation"></th>
@@ -125,6 +127,12 @@ export default {
         align: "start",
         sortable: false,
         value: "customer.firstName",
+      },
+      {
+        text: "Address",
+        align: "start",
+        sortable: false,
+        value: "customer.address",
       },
       {
         text: "Commodity",

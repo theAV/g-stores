@@ -18,7 +18,7 @@ import CommodityVariant from "./commodity_variant";
 const isDevelopment = process.env.NODE_ENV !== "production";
 
 let models = {};
-const sequelize = new Sequelize("wms", "root", "root", {
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, process.env.DB_PASSWORD, {
   dialect: "mysql",
   logging: isDevelopment,
 });

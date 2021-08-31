@@ -90,8 +90,10 @@
                   <v-col md="6">
                     <validation-provider
                       v-slot="{ errors }"
-                      name="Challan Number"
-                      rules="required|decimal"
+                      name="Quantity"
+                      :rules="`required|decimal|min_value:1|max_value:${getMaxValue(
+                        location.id
+                      )}`"
                     >
                       <v-text-field
                         label="Quantity"
@@ -100,7 +102,7 @@
                         outlined
                         type="number"
                         :suffix="data.packagingType"
-                        hide-details
+                        hide-details="auto"
                       ></v-text-field>
                     </validation-provider>
                   </v-col>
@@ -149,6 +151,7 @@ import outwardServices from "@/services/outward";
 import baseMixin from "@/mixins/base";
 import { ValidationObserver, ValidationProvider } from "vee-validate";
 import DatePicker from "@/components/DatePicker/DatePicker";
+import { maximumFractionDigits } from "@/utility";
 export default {
   name: "OutwardDialog",
   components: {
@@ -173,7 +176,8 @@ export default {
       if (newVal) {
         this.data = this.dataObject;
         const dataCopy = [];
-        this.selected.forEach((element) => {
+        const parsedCopy = JSON.parse(JSON.stringify(this.selected));
+        parsedCopy.forEach((element) => {
           const indexNumber = dataCopy.findIndex(
             (i) => i.inwardId === element.inwardId
           );
@@ -216,9 +220,7 @@ export default {
     getWeight(quantity, totalQuantity, totalWeight) {
       const totalWeightInKG = totalWeight * 100;
       const averageWeight = totalWeightInKG / totalQuantity;
-      return this.$options.filters.maximumFractionDigits(
-        (averageWeight * quantity) / 100
-      );
+      return maximumFractionDigits((averageWeight * quantity) / 100);
     },
     async submitOutwardForm() {
       this.creating = true;
@@ -272,6 +274,9 @@ export default {
     },
     reset() {
       this.$refs.observer.reset();
+    },
+    getMaxValue(locationId) {
+      return this.selected.find((row) => row.id === locationId).quantity;
     },
   },
 };

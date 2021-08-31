@@ -310,7 +310,7 @@ class Inward extends BaseController {
       customerId,
       commodityId,
       warehouseId,
-      isLoading
+      isLoading,
     } = requestBody;
     let whereClause = {};
     // if data required in a date range
@@ -366,7 +366,12 @@ class Inward extends BaseController {
           {
             model: models.InwardLocation,
             required: isLoading ? false : true,
-            include: [models.Warehouse, models.Chamber, models.Floor, models.Rack],
+            include: [
+              models.Warehouse,
+              models.Chamber,
+              models.Floor,
+              models.Rack,
+            ],
             where: locationWhere,
           },
         ],
@@ -492,7 +497,7 @@ class Inward extends BaseController {
           },
           models.Commodity,
           models.Category,
-        ]
+        ],
       });
       if (isEmpty(result)) {
         return this.noDataResponse();
@@ -507,7 +512,7 @@ class Inward extends BaseController {
     try {
       const result = await models.Inward.findAll({
         where: {
-          isLoading: true
+          isLoading: true,
         },
         attributes: [
           [
@@ -524,6 +529,104 @@ class Inward extends BaseController {
       if (isEmpty(result)) return this.noDataResponse();
       const data = this.getPlainDataObject(result);
       return this.sendDataResponse(data);
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async transferStock(requestBody) {
+    const t = await models.sequelize.transaction();
+    try {
+      const {
+        isPartialTransfer,
+        locationId,
+        warehouseId,
+        chamberId,
+        floorId,
+        rackId,
+        slots,
+        quantity,
+        weight,
+      } = requestBody;
+      const oldLocation = await models.InwardLocation.findOne({
+        where: {
+          id: locationId,
+        },
+      });
+      await models.Stock.decrement("stockQuantity", {
+        by: quantity,
+        where: {
+          rackId: oldLocation.rackId,
+        },
+        transaction: t,
+      });
+      await models.Stock.decrement("stockWeight", {
+        by: weight,
+        where: {
+          rackId: oldLocation.rackId,
+        },
+        transaction: t,
+      });
+      if (isPartialTransfer) {
+        await models.InwardLocation.create({
+          warehouseId,
+          chamberId,
+          floorId,
+          rackId,
+          slots,
+          quantity,
+          weight,
+          inwardId: oldLocation.inwardId,
+        });
+        await models.InwardLocation.decrement("quantity", {
+          by: quantity,
+          where: {
+            id: locationId,
+          },
+          transaction: t,
+        });
+        await models.InwardLocation.decrement("weight", {
+          by: weight,
+          where: {
+            id: locationId,
+          },
+          transaction: t,
+        });
+      } else {
+        await models.InwardLocation.update(
+          {
+            warehouseId,
+            chamberId,
+            floorId,
+            rackId,
+            slots,
+            quantity,
+            weight,
+          },
+          {
+            where: {
+              id: locationId,
+            },
+            transaction: t,
+          }
+        );
+      }
+      await models.Stock.increment("stockQuantity", {
+        by: quantity,
+        where: {
+          rackId: rackId,
+        },
+        transaction: t,
+      });
+      await models.Stock.increment("stockWeight", {
+        by: weight,
+        where: {
+          rackId: rackId,
+        },
+        transaction: t,
+      });
+      await t.commit();
+      return this.sendCreateSuccess("Transferred successfully");
     } catch (error) {
       return error;
     }

@@ -146,7 +146,9 @@
               <template v-slot:default>
                 <thead>
                   <tr>
+                    <th class="text-left">R. No.</th>
                     <th class="text-left">Customer</th>
+                    <th class="text-left">Address</th>
                     <th class="text-left">Commodity</th>
                     <th class="text-left">Quantity</th>
                   </tr>
@@ -154,7 +156,9 @@
                 <tbody>
                   <tr v-for="item in inwardList" :key="item.name">
                     <template v-if="item.inward">
+                      <td>{{ item.inward.receiptNumber}}</td>
                       <td>{{ item.inward.customer.firstName }}</td>
+                      <td>{{ item.inward.customer.address }}</td>
                       <td>{{ item.inward.commodity.name }}</td>
                       <td>{{ item.quantity }} bags</td>
                     </template>

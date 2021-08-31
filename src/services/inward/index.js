@@ -35,8 +35,11 @@ class InwardServices {
   getUnloadedInwards() {
     return ipc.invoke(eventConst.UNLOADED_INWARDS);
   }
-  getUnloadedStock(){
-    return ipc.invoke(eventConst.UNLOADED_INWARDS_STOCKS)
+  getUnloadedStock() {
+    return ipc.invoke(eventConst.UNLOADED_INWARDS_STOCKS);
+  }
+  transferInwardStock(requestbody) {
+    return ipc.invoke(eventConst.TRANSFER_INWARDS_STOCKS, requestbody);
   }
 }
 

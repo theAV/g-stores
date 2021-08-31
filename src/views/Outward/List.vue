@@ -97,12 +97,14 @@
               <th></th>
               <th></th>
               <th></th>
+              <th></th>
               <th class="text-right">
                 {{ sumField("quantity") | maximumFractionDigits }}
               </th>
               <th class="text-right">
                 {{ sumField("weight") | maximumFractionDigits }}
               </th>
+              <th></th>
               <th></th>
               <th></th>
               <th class="hide-in-print"></th>
@@ -163,6 +165,12 @@ export default {
           align: "start",
           sortable: false,
           value: "inward.customer.firstName",
+        },
+        {
+          text: "Address",
+          align: "start",
+          sortable: false,
+          value: "inward.customer.address",
         },
         {
           text: "Quantity",

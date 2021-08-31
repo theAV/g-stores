@@ -114,6 +114,7 @@
               <th></th>
               <th></th>
               <th></th>
+              <th></th>
               <th class="hide-in-print"></th>
             </tr>
           </template>

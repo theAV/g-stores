@@ -46,6 +46,7 @@
             <th></th>
             <th></th>
             <th></th>
+            <th></th>
             <th class="text-right">
               {{ sumField("quantity") | maximumFractionDigits }}
             </th>
@@ -54,6 +55,7 @@
             </th>
             <th></th>
             <th></th>
+            <th></th> 
           </tr>
         </template>
       </v-data-table>
@@ -92,6 +94,11 @@ export default {
         text: "Customer",
         sortable: false,
         value: "inward.customer.firstName",
+      },
+      {
+        text: "Address",
+        sortable: false,
+        value: "inward.customer.address",
       },
       {
         text: "Quantity",

@@ -1,4 +1,5 @@
 import mysqldump from "mysqldump";
+console.log(process.env.DB_HOST)
 class Backup {
   attach(browserWindow) {
     return new Promise((resolve, reject) => {
@@ -15,10 +16,10 @@ class Backup {
             const dumpFileName = `${Math.round(Date.now() / 1000)}.sql`;
             mysqldump({
               connection: {
-                host: "localhost",
-                user: "root",
-                password: "root",
-                database: "wms",
+                host: process.env.DB_HOST,
+                user: process.env.DB_USERNAME,
+                password: process.env.DB_PASSWORD,
+                database: process.env.DB_NAME,
               },
               dumpToFile: `${drivePath}/${dumpFileName}`,
             }).then((d) => {

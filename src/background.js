@@ -14,7 +14,7 @@ import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 import BackupService from "./backend/datastore/backup";
 import UpdaterService from "./backend/electron/updater";
-
+require('dotenv').config();
 const path = require("path");
 const os = require("os");
 const isDevelopment = process.env.NODE_ENV !== "production";
