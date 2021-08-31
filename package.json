@@ -1,6 +1,6 @@
 {
   "name": "g-store",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "private": true,
   "author": {
     "name": "Glazelabs",
@@ -16,7 +16,7 @@
     "electron:build:all": "vue-cli-service electron:build --x64 --ia32",
     "electron:build": "vue-cli-service electron:build --x64",
     "electron:serve": "vue-cli-service electron:serve  --trace-warnings",
-    "electron:Publish": "npm run electron:build:all -- -p always",
+    "electron:Publish": "dotenv -- cross-env GH_TOKEN=%GH_TOKEN% && npm run electron:build:all -- -p always",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps"
   },
@@ -52,6 +52,7 @@
     "@vue/cli-service": "~4.5.0",
     "@vue/eslint-config-prettier": "^6.0.0",
     "babel-eslint": "^10.1.0",
+    "cross-env": "^7.0.3",
     "electron": "^12.0.0",
     "electron-devtools-installer": "^3.1.0",
     "electron-rebuild": "^2.3.5",
