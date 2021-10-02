@@ -14,12 +14,14 @@ import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 import BackupService from "./backend/datastore/backup";
 import UpdaterService from "./backend/electron/updater";
-require('dotenv').config();
+require("dotenv").config();
 const path = require("path");
 const os = require("os");
 const isDevelopment = process.env.NODE_ENV !== "production";
 import exportFile from "./backend/electron/fileExport";
-
+import DataStore from "./backend/electron/dataStore";
+const itemsData = new DataStore();
+import eventConst from "@/shared/eventConst";
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
   { scheme: "app", privileges: { secure: true, standard: true } },
@@ -117,7 +119,7 @@ app.on("activate", () => {
 });
 let template = [];
 if (isDevelopment) {
-  template.push({ label: "devtool", role: "toggleDevTools" })
+  template.push({ label: "devtool", role: "toggleDevTools" });
 }
 const menu = Menu.buildFromTemplate(template);
 Menu.setApplicationMenu(menu);
@@ -135,6 +137,9 @@ app.on("ready", async () => {
   }
   createWindow();
   //registring all models here
+  ipcMain.handle(eventConst.GET_USER_PREFERENCE, () => {
+    return itemsData.getItems();
+  });
   require("./backend/datastore/controllers");
 });
 

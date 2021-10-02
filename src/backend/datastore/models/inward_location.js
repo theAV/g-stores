@@ -8,14 +8,17 @@ class InwardLocation extends Model {
         weight: DataTypes.FLOAT,
         quantity: DataTypes.BIGINT,
         slots: DataTypes.STRING,
+        rate: {
+          type: DataTypes.FLOAT,
+          allowNull: false,
+        },
       },
       {
         sequelize,
         paranoid: true,
         timestamps: false,
         modelName: "inwardLocation",
-        defaultScope: {
-        },
+        defaultScope: {},
       }
     );
   }

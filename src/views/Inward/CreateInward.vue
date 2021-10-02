@@ -1,7 +1,7 @@
 <template>
   <section>
     <v-card elevation="2">
-      <v-card-title class="px-7"
+      <v-card-title
         >Create New Inward
         <v-spacer></v-spacer>
         <span class="danger--text text-caption"
@@ -9,293 +9,238 @@
         >
       </v-card-title>
       <v-divider></v-divider>
-      <validation-observer ref="observer" v-slot="{ invalid }">
-        <v-form @submit.prevent="onSubmit" ref="form">
-          <v-card-text class="px-7 pt-7 pb-0">
+      <Form scope="inwardForm" ref="form" :submit="onSubmit">
+        <template v-slot:default>
+          <v-card-text class="pt-7 pb-0">
             <v-row>
-              <v-col md="2">
-                <validation-provider
-                  v-slot="{ errors }"
-                  name="receipt number"
-                  rules="required"
-                >
-                  <v-text-field
-                    v-model="form.receiptNumber"
-                    :error-messages="errors"
-                    label="Enter receipt number*"
-                    outlined
-                    required
-                  ></v-text-field>
-                </validation-provider>
+              <v-col cols="12">
+                <v-switch
+                  color="danger"
+                  hide-details
+                  class="mt-0 d-inline-block"
+                  label="Is Fruits?"
+                  v-model="form.isFruits"
+                ></v-switch>
               </v-col>
               <v-col md="2">
-                <validation-provider
-                  v-slot="{ errors }"
+                <text-field
+                  v-model="form.receiptNumber"
+                  label="Enter receipt number"
+                  name="receipt number"
+                  required
+                  rules="required"
+                ></text-field>
+              </v-col>
+              <v-col md="2">
+                <SelectBox
+                  v-model="form.warehouseId"
+                  :items="warehouseList"
+                  :error-messages="errors"
+                  item-value="id"
+                  item-text="name"
+                  label="Select warehouse"
+                  outlined
+                  required
                   name="Warehouse"
                   rules="required"
-                >
-                  <v-select
-                    v-model="form.warehouseId"
-                    :items="warehouseList"
-                    :error-messages="errors"
-                    item-value="id"
-                    item-text="name"
-                    label="Select warehouse"
-                    outlined
-                    required
-                  ></v-select>
-                </validation-provider>
+                />
               </v-col>
               <v-col md="2">
-                <validation-provider
-                  v-slot="{ errors }"
+                <SelectBox
+                  v-model="form.customerId"
+                  :items="customerList"
+                  :error-messages="errors"
+                  item-value="id"
+                  item-text="firstName"
+                  label="Customer / Party / Firm"
+                  outlined
+                  required
                   name="Customer"
                   rules="required"
-                >
-                  <v-autocomplete
-                    v-model="form.customerId"
-                    :items="customerList"
-                    :error-messages="errors"
-                    item-value="id"
-                    item-text="firstName"
-                    label="Customer / Part / Firm*"
-                    outlined
-                    required
-                  ></v-autocomplete>
-                </validation-provider>
+                  auto-complete
+                />
               </v-col>
               <v-col md="2">
-                <validation-provider
-                  v-slot="{ errors }"
+                <date-picker
+                  v-model="form.inwardDate"
+                  outlined
+                  required
+                  label="Select inward date"
                   name="inward date"
                   rules="required"
-                >
-                  <date-picker
-                    v-model="form.inwardDate"
-                    outlined
-                    required
-                    :error-messages="errors"
-                    label="Select inward date"
-                  ></date-picker>
-                </validation-provider>
+                ></date-picker>
               </v-col>
               <v-col md="2">
-                <validation-provider
-                  v-slot="{ errors }"
+                <SelectBox
+                  v-model="form.commodityId"
+                  :items="commodityList"
+                  :error-messages="errors"
+                  item-value="id"
+                  item-text="name"
+                  label="Commodity"
+                  outlined
+                  required
                   name="Commodity"
                   rules="required"
-                >
-                  <v-select
-                    v-model="form.commodityId"
-                    :items="commodityList"
-                    :error-messages="errors"
-                    item-value="id"
-                    item-text="name"
-                    label="Commodity*"
-                    outlined
-                    required
-                    @change="getVariantList(form.commodityId)"
-                  ></v-select>
-                </validation-provider>
+                  @change="getVariantList(form.commodityId)"
+                  auto-complete
+                />
               </v-col>
               <v-col md="2">
-                <validation-provider
-                  v-slot="{ errors }"
+                <SelectBox
+                  v-model="form.CommodityVariantId"
+                  :items="variantList"
+                  :error-messages="errors"
+                  item-value="id"
+                  item-text="name"
+                  label="Variant"
+                  outlined
+                  required
                   name="Variant"
                   rules="required"
-                >
-                  <v-select
-                    v-model="form.CommodityVariantId"
-                    :items="variantList"
-                    :error-messages="errors"
-                    item-value="id"
-                    item-text="name"
-                    label="Variant*"
-                    outlined
-                    required
-                  ></v-select>
-                </validation-provider>
+                />
               </v-col>
 
               <v-col md="2">
-                <v-select
+                <SelectBox
                   v-model="dealType"
                   :items="dealTypeList"
                   item-value="id"
                   item-text="name"
                   label="Select Deal type"
                   outlined
-                ></v-select>
+                  :disabled="form.isFruits"
+                />
               </v-col>
               <template v-if="dealType === 1">
                 <v-col md="2">
-                  <validation-provider
-                    v-slot="{ errors }"
+                  <text-field
+                    v-model="contract.startDate"
+                    label="Select contract start date"
                     name="contract start date"
+                    type="date"
                     rules="required"
-                  >
-                    <v-text-field
-                      v-model="contract.startDate"
-                      :error-messages="errors"
-                      type="date"
-                      label="Select contract start date"
-                      outlined
-                      required
-                    ></v-text-field>
-                  </validation-provider>
+                    required
+                  ></text-field>
                 </v-col>
                 <v-col md="2">
-                  <validation-provider
-                    v-slot="{ errors }"
+                  <text-field
+                    v-model="contract.endDate"
+                    label="Select contract end date"
                     name="contract end date"
+                    type="date"
                     rules="required"
-                  >
-                    <v-text-field
-                      v-model="contract.endDate"
-                      :error-messages="errors"
-                      :disabled="!contract.startDate"
-                      :min="contract.startDate"
-                      type="date"
-                      label="Select contract end date"
-                      outlined
-                      required
-                    ></v-text-field>
-                  </validation-provider>
+                    required
+                    :disabled="!contract.startDate"
+                    :min="contract.startDate"
+                  ></text-field>
                 </v-col>
               </template>
               <template v-if="dealType === 2">
                 <v-col md="2">
-                  <validation-provider
-                    v-slot="{ errors }"
+                  <text-field
+                    v-model="seasonal.startDate"
+                    type="month"
+                    label="Select season start month"
+                    outlined
+                    required
                     name="season start month"
                     rules="required"
-                  >
-                    <v-text-field
-                      v-model="seasonal.startDate"
-                      :error-messages="errors"
-                      type="month"
-                      label="Select season start month"
-                      outlined
-                      required
-                    ></v-text-field>
-                  </validation-provider>
+                  ></text-field>
                 </v-col>
                 <v-col md="2">
-                  <validation-provider
-                    v-slot="{ errors }"
+                  <text-field
+                    v-model="seasonal.endDate"
+                    type="month"
+                    label="Select season end month"
+                    outlined
+                    required
                     name="season end month"
                     rules="required"
-                  >
-                    <v-text-field
-                      v-model="seasonal.endDate"
-                      :error-messages="errors"
-                      type="month"
-                      label="Select season end month"
-                      outlined
-                      required
-                    ></v-text-field>
-                  </validation-provider>
+                  ></text-field>
                 </v-col>
               </template>
               <v-col md="2">
-                <v-select
+                <SelectBox
                   v-model="form.packagingType"
                   :items="packagingType"
                   label="Packaging type"
+                  :disabled="form.isFruits"
                   outlined
-                ></v-select>
+                />
               </v-col>
-              <v-col md="2">
-                <validation-provider
-                  v-slot="{ errors }"
-                  name="total quantity"
-                  rules="required|numeric"
-                >
-                  <v-text-field
+              <template v-if="!form.isFruits">
+                <v-col md="2">
+                  <text-field
                     v-model="form.totalQuantity"
-                    :error-messages="errors"
                     :suffix="form.packagingType"
                     @input="clearWeights()"
                     type="number"
-                    label="Total quantity*"
+                    label="Total quantity"
                     outlined
                     required
-                  ></v-text-field>
-                </validation-provider>
-              </v-col>
-              <v-col md="2">
-                <validation-provider
-                  v-slot="{ errors }"
-                  name="total weight"
-                  rules="required|decimal"
-                >
-                  <v-text-field
+                    name="total quantity"
+                    rules="required|numeric"
+                  ></text-field>
+                </v-col>
+                <v-col md="2">
+                  <text-field
                     v-model="form.totalWeight"
-                    :error-messages="errors"
                     :disabled="!form.totalQuantity"
                     type="number"
-                    label="Total weight*"
+                    label="Total weight"
                     suffix="quintal"
                     outlined
                     required
-                  ></v-text-field>
-                </validation-provider>
-              </v-col>
-              <v-col md="2">
-                <validation-provider v-slot="{ errors }" name="average weight">
-                  <v-text-field
+                    name="total weight"
+                    rules="required|decimal"
+                  ></text-field>
+                </v-col>
+                <v-col md="2">
+                  <text-field
                     v-model="form.averageWeight"
-                    :error-messages="errors"
                     :disabled="!form.totalQuantity"
                     @input="getKataWeight()"
                     type="number"
                     label="Average weight*"
                     outlined
                     suffix="kg"
-                  ></v-text-field>
-                </validation-provider>
-              </v-col>
-              <v-col md="2">
-                <validation-provider
-                  v-slot="{ errors }"
-                  name="rate"
-                  rules="required|decimal"
-                >
-                  <v-text-field
+                    name="average weight"
+                    rules="required|decimal"
+                  ></text-field>
+                </v-col>
+                <v-col md="2">
+                  <text-field
                     v-model="dealRate"
-                    :error-messages="errors"
                     type="number"
-                    label="Enter rate*"
+                    label="Enter rate"
                     suffix="/quintal"
                     outlined
                     required
-                  ></v-text-field>
-                </validation-provider>
-              </v-col>
+                    name="rate"
+                    rules="required|decimal"
+                  ></text-field>
+                </v-col>
+              </template>
               <v-col md="2">
-                <v-text-field
+                <text-field
                   v-model="form.driverName"
                   label="Driver name"
-                  outlined
-                  required
-                ></v-text-field>
+                ></text-field>
               </v-col>
               <v-col md="2">
-                <v-text-field
+                <text-field
                   v-model="form.vehicleNo"
                   label="Vehicle number"
-                  outlined
-                  required
-                ></v-text-field>
+                ></text-field>
               </v-col>
               <v-col md="2">
-                <v-text-field
+                <text-field
                   v-model="form.marka"
                   label="Marka number"
-                  outlined
-                ></v-text-field>
+                ></text-field>
               </v-col>
-              <v-col md="2">
+              <v-col md="2" v-if="!form.isFruits">
                 <v-btn
                   :disabled="
                     !form.warehouseId ||
@@ -320,31 +265,40 @@
               </v-col>
             </v-row>
           </v-card-text>
-          <v-simple-table v-if="locations.length > 0">
-            <template v-slot:default>
-              <thead>
-                <tr>
-                  <th class="text-left">Chamber Name</th>
-                  <th class="text-left">Floor Name</th>
-                  <th class="text-left">Rack Name</th>
-                  <th class="text-left">Slots</th>
-                  <th class="text-left">Quantity</th>
-                  <th class="text-left">Weight</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(item, i) in locations" :key="i">
-                  <td>{{ item.chamber.name }}</td>
-                  <td>{{ item.floor.name }}</td>
-                  <td>{{ item.rack.name }}</td>
-                  <td>{{ item.slots }}</td>
-                  <td>{{ item.quantity }}</td>
-                  <td>{{ item.weight }}</td>
-                </tr>
-              </tbody>
-            </template>
-          </v-simple-table>
-
+          <template v-if="locations.length > 0">
+            <v-divider></v-divider>
+            <v-card tile flat>
+              <v-simple-table dense class="">
+                <template v-slot:default>
+                  <thead>
+                    <tr>
+                      <th class="text-left">Chamber</th>
+                      <th class="text-left">Floor</th>
+                      <th class="text-left">Rack</th>
+                      <th class="text-left">Slots</th>
+                      <th class="text-left">Quantity</th>
+                      <th class="text-left">Weight</th>
+                      <th class="text-left">Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(item, i) in locations" :key="i">
+                      <td>{{ item.chamber.name }}</td>
+                      <td>{{ item.floor.name }}</td>
+                      <td>{{ item.rack.name }}</td>
+                      <td>{{ item.slots }}</td>
+                      <td>{{ item.quantity }}</td>
+                      <td>{{ item.weight }}</td>
+                      <td>{{ item.rate }}</td>
+                    </tr>
+                  </tbody>
+                </template>
+              </v-simple-table>
+            </v-card>
+            <v-divider></v-divider>
+          </template>
+        </template>
+        <template v-slot:actions="{ invalid }">
           <v-card-actions class="pa-7">
             <v-spacer></v-spacer>
             <v-btn color="danger" text width="180" @click="clearAll()" large
@@ -361,9 +315,13 @@
               >Submit</v-btn
             >
           </v-card-actions>
-        </v-form>
-      </validation-observer>
-
+        </template>
+      </Form>
+      <Classification
+        v-if="form.isFruits && !form.isLoading"
+        :warehouseId="form.warehouseId"
+        v-model="locations"
+      />
       <v-bottom-sheet v-model="locationSheet" persistent>
         <add-location-form
           ref="locationFormRef"
@@ -383,21 +341,23 @@ import warehouseMixin from "@/mixins/warehouse";
 import inwardServices from "@/services/inward";
 import baseMixin from "@/mixins/base";
 import { convertToQuintal } from "@/utility";
-import { ValidationObserver, ValidationProvider } from "vee-validate";
 import commodityServices from "@/services/commodity";
-import DatePicker from "@/components/DatePicker/DatePicker";
 export default {
   components: {
     AddLocationForm: () => import("./components/AddLocationForm"),
-    ValidationProvider,
-    ValidationObserver,
-    DatePicker,
+    Classification: () => import("./components/Classification"),
+    TextField: () => import("@/components/TextField/TextField"),
+    DatePicker: () => import("@/components/DatePicker/DatePicker"),
+    SelectBox: () => import("@/components/SelectBox/SelectBox"),
+    Form: () => import("@/components/Form/Form"),
   },
   name: "CreateInward",
   data: () => ({
+    fruitsLocation: [],
     rangePicker: false,
     submitting: false,
     form: {
+      isFruits: false,
       averageWeight: "",
       customerId: "",
       commodityId: "",
@@ -438,6 +398,7 @@ export default {
     isLocationAdded: false,
     quantityForLocationSheet: 0,
     weightForLocationSheet: 0,
+    classificationSheet: false,
   }),
   provide: function () {
     return {
@@ -453,6 +414,12 @@ export default {
     this.getWarehouseLists({ listOnly: true });
   },
   watch: {
+    "form.isFruits": function (newval) {
+      if (newval) {
+        this.dealType = 3;
+        this.form.packagingType = "packet";
+      }
+    },
     "form.isLoading": function (newVal) {
       if (newVal) {
         this.isLocationAdded = true;
@@ -466,6 +433,9 @@ export default {
     },
   },
   methods: {
+    openClassificationSheet() {
+      this.classificationSheet = true;
+    },
     async getVariantList(commodityId) {
       this.variantList = [];
       try {
@@ -485,61 +455,68 @@ export default {
     },
     async onSubmit() {
       try {
-        this.$refs.observer.validate().then(async (valid) => {
-          this.submitting = true;
-          /**
-           * !important: add switch for locations 
-           */
-          if (!valid) return;
-          const { warehouseId, ...rest } = this.form;
-          const locations = this.locations.map((item) => {
-            return {
-              warehouseId: warehouseId,
-              chamberId: item.chamber.id,
-              floorId: item.floor.id,
-              rackId: item.rack.id,
-              quantity: item.quantity,
-              weight: item.weight,
-              slots: item.slots,
-            };
-          });
-          let deal = {
-            dealTypeId: this.dealType,
-            dealRate: this.dealRate,
+        this.submitting = true;
+        const { warehouseId, ...rest } = this.form;
+        const locations = this.locations.map((item) => {
+          return {
+            warehouseId: warehouseId,
+            chamberId: item.chamber.id,
+            floorId: item.floor.id,
+            rackId: item.rack.id,
+            quantity: item.quantity,
+            weight: item.weight,
+            slots: item.slots,
+            rate: item.rate || null,
           };
-          if (this.dealType === 1) {
-            deal = {
-              ...deal,
-              ...this.contract,
-            };
-          }
-          if (this.dealType === 2) {
-            deal = {
-              ...deal,
-              ...this.seasonal,
-            };
-          }
-          const rb = {
-            form: rest,
-            locations,
-            deal,
-          };
-          const response = await inwardServices.post(rb);
-          if (response instanceof Error) throw response;
-          if (response.status === 302) {
-            this.submitting = false;
-            this.showSnackBar(response.data.message, "error");
-            return;
-          }
-          if (response.status === 200) {
-            this.showSnackBar(response.data.message, "success");
-            this.clearAll();
-            this.submitting = false;
-          }
         });
+        let deal = {
+          dealTypeId: this.dealType,
+          dealRate: this.dealRate,
+        };
+        if (this.dealType === 1) {
+          deal = {
+            ...deal,
+            ...this.contract,
+          };
+        }
+        if (this.dealType === 2) {
+          deal = {
+            ...deal,
+            ...this.seasonal,
+          };
+        }
+        if (this.form.isFruits) {
+          const totalQuantity = this.locations.reduce((a, v) => {
+            return a + Number(v.quantity);
+          }, 0);
+          const totalWeight = this.locations.reduce((a, v) => {
+            return a + Number(v.weight);
+          }, 0);
+          rest.totalQuantity = totalQuantity;
+          rest.totalWeight = totalWeight;
+          rest.averageWeight = "0";
+          deal.dealRate = 0;
+        }
+        const rb = {
+          form: rest,
+          locations,
+          deal,
+        };
+        const response = await inwardServices.post(rb);
+        if (response instanceof Error) throw response;
+        if (response.status === 302) {
+          this.submitting = false;
+          this.showSnackBar(response.data.message, "error");
+          return;
+        }
+        if (response.status === 200) {
+          this.showSnackBar(response.data.message, "success");
+          this.clearAll();
+          this.submitting = false;
+        }
       } catch (error) {
         this.submitting = false;
-        console.error(error);
+        throw error;
       }
     },
     getKataWeight() {
@@ -568,31 +545,8 @@ export default {
       this.locationSheet = false;
     },
     clearAll() {
-      this.form = {
-        averageWeight: "",
-        customerId: "",
-        commodityId: "",
-        CommodityVariantId: "",
-        driverName: "",
-        inwardDate: null,
-        isLoading: false,
-        packagingType: "bag",
-        receiptNumber: null,
-        totalQuantity: "",
-        totalWeight: "",
-        vehicleNo: "",
-        marka: "",
-      };
-      this.isLocationAdded = false;
-      this.$refs.observer.reset();
+      this.$refs.form.clearForm();
       this.locations = [];
-      this.contract = {};
-      this.seasonal = {};
-      this.dealType = 3;
-      this.dealRate = "";
-      this.quantityForLocationSheet = 0;
-      this.weightForLocationSheet = 0;
-      this.submitting = false;
     },
   },
 };

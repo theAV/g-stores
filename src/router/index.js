@@ -1,156 +1,194 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-
+import Shell from "../Shell.vue";
+import userPreference from "@/services/userPreference";
 Vue.use(VueRouter);
+
+const guardMyroute = async (to, from, next) => {
+  let isAuthenticated = false;
+
+  if (localStorage.getItem("LoggedUser")) {
+    isAuthenticated = true;
+  } else if (process.env.IS_ELECTRON) {
+    const userPreferences = await userPreference.getUserPreference();
+    console.log(userPreferences);
+  } else {
+    isAuthenticated = false;
+  }
+  if (isAuthenticated) {
+    next();
+  } else {
+    next("/auth");
+  }
+};
 
 const routes = [
   {
+    path: "/auth",
+    name: "Auhthentication",
+    component: () =>
+      import(
+        /* webpackChunkName: "auth" */ "../views/Authentication/Authentication.vue"
+      ),
+  },
+  {
     path: "/",
-    name: "dashboard",
-    component: () =>
-      import(
-        /* webpackChunkName: "dashboard" */ "../views/Dashboard/Dashboard.vue"
-      ),
-  },
-  {
-    path: "/inwards",
-    component: () =>
-      import(/* webpackChunkName: "inwards" */ "../views/Inward/Inward.vue"),
+    component: Shell,
+    // beforeEnter: guardMyroute,
     children: [
       {
         path: "",
-        name: "inwardList",
+        name: "dashboard",
         component: () =>
           import(
-            /* webpackChunkName: "inwardsList" */ "../views/Inward/InwardList.vue"
+            /* webpackChunkName: "dashboard" */ "../views/Dashboard/Dashboard.vue"
           ),
       },
       {
-        path: "/create-inward",
-        name: "createInward",
+        path: "/inwards",
         component: () =>
           import(
-            /* webpackChunkName: "createinwards" */ "../views/Inward/CreateInward.vue"
+            /* webpackChunkName: "inwards" */ "../views/Inward/Inward.vue"
           ),
+        children: [
+          {
+            path: "",
+            name: "inwardList",
+            component: () =>
+              import(
+                /* webpackChunkName: "inwardsList" */ "../views/Inward/InwardList.vue"
+              ),
+          },
+          {
+            path: "/create-inward",
+            name: "createInward",
+            component: () =>
+              import(
+                /* webpackChunkName: "createinwards" */ "../views/Inward/CreateInward.vue"
+              ),
+          },
+          {
+            path: "/inward-details/:inwardId",
+            name: "inwardDetails",
+            component: () =>
+              import(
+                /* webpackChunkName: "inwardsDetails" */ "../views/Inward/InwardDetails.vue"
+              ),
+          },
+        ],
       },
       {
-        path: "/inward-details/:inwardId",
-        name: "inwardDetails",
+        path: "/outwards",
         component: () =>
           import(
-            /* webpackChunkName: "inwardsDetails" */ "../views/Inward/InwardDetails.vue"
+            /* webpackChunkName: "outwards" */ "../views/Outward/Outward.vue"
           ),
-      },
-    ],
-  },
-  {
-    path: "/outwards",
-    component: () =>
-      import(/* webpackChunkName: "outwards" */ "../views/Outward/Outward.vue"),
-    children: [
-      {
-        path: "",
-        name: "outwardList",
-        component: () =>
-          import(
-            /* webpackChunkName: "outwardList" */ "../views/Outward/List.vue"
-          ),
-      },
-      {
-        path: "/create-outward",
-        name: "createOutward",
-        component: () =>
-          import(
-            /* webpackChunkName: "createOutward" */ "../views/Outward/CreateOutward.vue"
-          ),
-      },
-    ],
-  },
-  {
-    path: "/commodity",
-    component: () =>
-      import(
-        /* webpackChunkName: "commodity" */ "../views/Commodity/Index.vue"
-      ),
-    meta: { breadCrumb: "Commodity" },
-    children: [
-      {
-        path: "",
-        name: "commodity",
-        component: () =>
-          import(
-            /* webpackChunkName: "commodityItem" */ "../views/Commodity/ItemForm.vue"
-          ),
-        meta: { breadCrumb: "Customer List" },
-      },
-    ],
-  },
-  {
-    path: "/customers",
-    component: () =>
-      import(/* webpackChunkName: "customer" */ "../views/Customer/index"),
-    meta: { breadCrumb: "Customer" },
-    children: [
-      {
-        path: "",
-        name: "customer",
-        component: () =>
-          import(
-            /* webpackChunkName: "CustomerList" */ "../views/Customer/CustomerList.vue"
-          ),
-        meta: { breadCrumb: "Customer List" },
+        children: [
+          {
+            path: "",
+            name: "outwardList",
+            component: () =>
+              import(
+                /* webpackChunkName: "outwardList" */ "../views/Outward/List.vue"
+              ),
+          },
+          {
+            path: "/create-outward",
+            name: "createOutward",
+            component: () =>
+              import(
+                /* webpackChunkName: "createOutward" */ "../views/Outward/CreateOutward.vue"
+              ),
+          },
+        ],
       },
       {
-        path: "/add-customer",
-        name: "add_customer",
+        path: "/commodity",
         component: () =>
           import(
-            /* webpackChunkName: "FormCustomer" */ "../views/Customer/FormCustomer.vue"
+            /* webpackChunkName: "commodity" */ "../views/Commodity/Index.vue"
           ),
-        meta: { breadCrumb: "Add new customer" },
+        meta: { breadCrumb: "Commodity" },
+        children: [
+          {
+            path: "",
+            name: "commodity",
+            component: () =>
+              import(
+                /* webpackChunkName: "commodityItem" */ "../views/Commodity/ItemForm.vue"
+              ),
+            meta: { breadCrumb: "Customer List" },
+          },
+        ],
       },
-    ],
-  },
+      {
+        path: "/customers",
+        component: () =>
+          import(/* webpackChunkName: "customer" */ "../views/Customer/index"),
+        meta: { breadCrumb: "Customer" },
+        children: [
+          {
+            path: "",
+            name: "customer",
+            component: () =>
+              import(
+                /* webpackChunkName: "CustomerList" */ "../views/Customer/CustomerList.vue"
+              ),
+            meta: { breadCrumb: "Customer List" },
+          },
+          {
+            path: "/add-customer",
+            name: "add_customer",
+            component: () =>
+              import(
+                /* webpackChunkName: "FormCustomer" */ "../views/Customer/FormCustomer.vue"
+              ),
+            meta: { breadCrumb: "Add new customer" },
+          },
+        ],
+      },
 
-  {
-    path: "/warehouse",
-    name: "warehouse",
-    // route level code-splitting
-    // this generates a separate chunk (warehouse.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () =>
-      import(
-        /* webpackChunkName: "warehouse" */ "../views/Warehouse/Warehouse.vue"
-      ),
-    meta: { breadCrumb: "Warehouse" },
-    children: [
       {
-        path: "/overview",
-        name: "overview",
+        path: "/warehouse",
+        name: "warehouse",
+        // route level code-splitting
+        // this generates a separate chunk (warehouse.[hash].js) for this route
+        // which is lazy-loaded when the route is visited.
         component: () =>
           import(
-            /* webpackChunkName: "warehouse-overview" */ "../views/Warehouse/WarehouseOverview.vue"
+            /* webpackChunkName: "warehouse" */ "../views/Warehouse/Warehouse.vue"
           ),
-        meta: { breadCrumb: "View Warehouse" },
+        meta: { breadCrumb: "Warehouse" },
+        children: [
+          {
+            path: "/overview",
+            name: "overview",
+            component: () =>
+              import(
+                /* webpackChunkName: "warehouse-overview" */ "../views/Warehouse/WarehouseOverview.vue"
+              ),
+            meta: { breadCrumb: "View Warehouse" },
+          },
+          {
+            path: "/add-item",
+            name: "addWarehouseItem",
+            component: () =>
+              import(
+                /* webpackChunkName: "warehouse-section-create" */ "../views/Warehouse/WarehouseSectionCreate.vue"
+              ),
+            meta: { breadCrumb: "View Warehouse" },
+          },
+        ],
       },
       {
-        path: "/add-item",
-        name: "addWarehouseItem",
+        path: "/reports",
+        name: "report",
         component: () =>
           import(
-            /* webpackChunkName: "warehouse-section-create" */ "../views/Warehouse/WarehouseSectionCreate.vue"
+            /* webpackChunkName: "ReportComponent" */ "../views/Reports/Report.vue"
           ),
-        meta: { breadCrumb: "View Warehouse" },
       },
     ],
-  },
-  {
-    path: "/reports",
-    name: "report",
-    component: () =>
-      import(
-        /* webpackChunkName: "ReportComponent" */ "../views/Reports/Report.vue"
-      ),
   },
 ];
 

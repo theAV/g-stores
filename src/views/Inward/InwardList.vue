@@ -8,21 +8,22 @@
         exportable
       >
         <template v-slot:toolbarcontent>
-          <v-row>
-            <v-col md="4">
-              <v-select
+          <v-flex d-flex align-center>
+            <div style="width: 350px" class="mr-3">
+              <SelectBox
                 v-model="warehouseId"
                 :items="warehouseList"
                 label="Select Warehouse"
                 item-value="id"
                 item-text="name"
                 hide-details
-              ></v-select>
-            </v-col>
-            <v-col md="4">
-              <date-picker range v-model="rangeDate"></date-picker>
-            </v-col>
-            <v-col md="4">
+                dense
+              />
+            </div>
+            <div style="width: 350px" class="mr-3">
+              <date-picker range v-model="rangeDate" dense hide-details></date-picker>
+            </div>
+            <div>
               <v-btn
                 color="primary"
                 :disabled="rangeDate.length < 2"
@@ -38,8 +39,8 @@
                 @click="reset"
                 >Reset</v-btn
               >
-            </v-col>
-          </v-row>
+            </div>
+          </v-flex>
           <v-spacer></v-spacer>
           <v-btn color="primary" depressed @click="goToAddNew">Add new</v-btn>
         </template>
@@ -59,7 +60,8 @@ export default {
   name: "InwardList",
   components: {
     InwardTable,
-    DatePicker: () => import("@/components/DatePicker/DatePicker")
+    DatePicker: () => import("@/components/DatePicker/DatePicker"),
+    SelectBox: () => import("@/components/SelectBox/SelectBox"),
   },
   data: () => {
     return {

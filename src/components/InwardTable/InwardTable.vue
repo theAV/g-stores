@@ -15,7 +15,7 @@
       <v-card-title>
         <v-row>
           <v-col md="3">
-            <v-text-field
+            <TextField
               v-model="search"
               append-icon="mdi-magnify"
               label="Search"
@@ -26,7 +26,7 @@
               filled
               width="300px"
               clearable
-            ></v-text-field>
+            />
           </v-col>
           <v-col md="9">
             <v-checkbox
@@ -46,7 +46,6 @@
           :items="inwardList"
           :loading="isLoading"
           :hide-default-footer="hideFooter"
-
           class="fluid-table"
           :item-class="rowClassesObject"
           :search="search"
@@ -70,11 +69,11 @@
                   <v-list-item-title>Unload</v-list-item-title>
                 </v-list-item>
                 <v-list-item
-              v-if="!item.isLoading"
-              @click="openTransferSheet(item.id)"
-            >
-              <v-list-item-title>Transfer</v-list-item-title>
-            </v-list-item>
+                  v-if="!item.isLoading"
+                  @click="openTransferSheet(item.id)"
+                >
+                  <v-list-item-title>Transfer</v-list-item-title>
+                </v-list-item>
                 <v-list-item @click="deleteInward(item.id)">
                   <v-list-item-title>Delete</v-list-item-title>
                 </v-list-item>
@@ -83,6 +82,14 @@
                 </v-list-item>
               </v-list>
             </v-menu>
+          </template>
+          <template v-slot:[`item.receiptNumber`]="{ item }">
+            <v-flex d-flex align-center>
+              <span v-if="item.isFruits" class="mr-2 hide-print">
+                <img src="../../assets/healthy-food.png" />
+              </span>
+              <span>{{ item.receiptNumber }}</span>
+            </v-flex>
           </template>
           <template v-slot:[`item.inwardDate`]="{ item }">
             {{ item.inwardDate | formatDate }}
@@ -142,14 +149,15 @@ import UnloadComponent from "../Unload/Unload";
 import TransferComponent from "../Transfer/Transfer";
 import ConfirmationModal from "../Confirmation/Confirmation";
 import EventBus from "@/event";
-import ExportMenu from "@/components/ExportMenu/ExportMenu";
 export default {
   name: "InwardTable",
   components: {
     ConfirmationModal,
     UnloadComponent,
     TransferComponent,
-    ExportMenu,
+    ExportMenu: () => import("@/components/ExportMenu/ExportMenu"),
+    TextField: () => import("@/components/TextField/TextField"),
+    DatePicker: () => import("@/components/DatePicker/DatePicker"),
   },
   data: () => ({
     confirmationDialog: false,
@@ -301,7 +309,7 @@ export default {
       return this.inwardList.reduce((a, b) => a + (+b[key] || 0), 0);
     },
     init() {
-      if(this.showLoadingOnly){
+      if (this.showLoadingOnly) {
         return this.getUnloadedInwards();
       }
       this.getInwardByLimit(this.listLimit);

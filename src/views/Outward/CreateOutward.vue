@@ -85,7 +85,12 @@
           </td>
         </template>
         <template v-slot:[`item.inwardDate`]="{ item }">
-          {{ item.inwardDate | formatDate }}
+          <v-flex d-flex align-center>
+            <span v-if="item.isFruits" class="mr-2 hide-print">
+              <img src="../../assets/healthy-food.png" />
+            </span>
+            <span>{{ item.inwardDate | formatDate }}</span>
+          </v-flex>
         </template>
         <template v-slot:[`item.balanceWeight`]="{ item }">
           {{ item.balanceWeight | maximumFractionDigits }}

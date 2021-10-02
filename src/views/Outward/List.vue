@@ -1,21 +1,22 @@
 <template>
   <section class="text-capitalize">
     <v-toolbar height="80" class="mb-5 elevation-1">
-      <v-row>
-        <v-col md="4" class="d-flex align-center">
-          <v-select
+      <v-flex d-flex align-center>
+        <div style="width: 350px" class="mr-3">
+          <SelectBox
             v-model="warehouseId"
             :items="warehouseList"
             label="Select Warehouse"
             item-value="id"
             item-text="name"
             hide-details
-          ></v-select>
-        </v-col>
-        <v-col md="4" class="d-flex align-center">
-          <date-picker range v-model="rangeDate"></date-picker>
-        </v-col>
-        <v-col md="3">
+            dense
+          />
+        </div>
+        <div style="width: 350px" class="mr-3">
+          <date-picker range v-model="rangeDate" dense hide-details></date-picker>
+        </div>
+        <div>
           <v-btn
             color="primary"
             @click="getOutwards(true)"
@@ -24,14 +25,15 @@
             >Search</v-btn
           >
           <v-btn
+          class="ml-5"
             :disabled="rangeDate.length < 2 && !warehouseId"
             color="danger"
             text
             @click="reset"
             >Reset</v-btn
           >
-        </v-col>
-      </v-row>
+        </div>
+      </v-flex>
       <v-spacer></v-spacer>
       <v-btn color="primary" depressed @click="goToAddNew">Add new</v-btn>
       <export-menu
@@ -61,11 +63,7 @@
       </v-card-title>
       <v-divider></v-divider>
       <div ref="tablePrintRef">
-        <v-data-table
-          :headers="headers"          
-          :items="dataList"
-          :search="search"
-        >
+        <v-data-table :headers="headers" :items="dataList" :search="search">
           <template v-slot:[`item.actions`]="{ item }">
             <v-btn icon @click="deleteOutward(item.id)">
               <v-icon>mdi-delete</v-icon>
@@ -128,10 +126,7 @@
 import warehouseServices from "@/services/warehouse";
 import outwardServices from "@/services/outward";
 import baseMixin from "@/mixins/base";
-import {
-  getEpoch,
-  getTotalOutwardsFromLocation,
-} from "@/utility";
+import { getEpoch, getTotalOutwardsFromLocation } from "@/utility";
 export default {
   data: () => {
     return {
@@ -216,7 +211,8 @@ export default {
   components: {
     ConfirmationModal: () => import("@/components/Confirmation/Confirmation"),
     ExportMenu: () => import("@/components/ExportMenu/ExportMenu"),
-    DatePicker: () => import("@/components/DatePicker/DatePicker")
+    DatePicker: () => import("@/components/DatePicker/DatePicker"),
+    SelectBox: () => import("@/components/SelectBox/SelectBox"),
   },
   created() {
     this.getWarehouse();

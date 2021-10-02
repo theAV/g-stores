@@ -41,6 +41,10 @@ class Inward extends Model {
           allowNull: false,
         },
         marka: DataTypes.STRING,
+        isFruits: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false
+        },
       },
       {
         sequelize,

@@ -37,7 +37,9 @@
               <th class="text-left text-right">Bal Weight</th>
               <th class="text-left">Commodity</th>
               <th class="text-left">Variant</th>
-              <th v-if="shouldShowLocation && !warehouse" class="text-left">Warehouse</th>
+              <th v-if="shouldShowLocation && !warehouse" class="text-left">
+                Warehouse
+              </th>
               <th v-if="shouldShowLocation" class="text-left">Chamber</th>
               <th v-if="shouldShowLocation" class="text-left">Floor</th>
               <th v-if="shouldShowLocation" class="text-left">Rack</th>
@@ -46,8 +48,20 @@
           </thead>
           <tbody>
             <template v-for="item in dataList">
-              <tr class="inward-row" :key="item.id" :id="item.id" :class="loadingClasses(item.isLoading)">
-                <td>{{ item.inwardDate | formatDate }}</td>
+              <tr
+                class="inward-row"
+                :key="item.id"
+                :id="item.id"
+                :class="loadingClasses(item.isLoading)"
+              >
+                <td>
+                  <v-flex d-flex align-center>
+                    <span v-if="item.isFruits" class="mr-2 hide-print">
+                      <img src="../../../assets/healthy-food.png" />
+                    </span>
+                    <span> {{ item.inwardDate | formatDate }}</span>
+                  </v-flex>
+                </td>
                 <td style="width: 80px">{{ item.receiptNumber }}</td>
                 <td style="width: 80px"></td>
                 <td class="text-right">
@@ -70,7 +84,10 @@
                 <td class="text-capitalize">
                   {{ item.CommodityVariant.name }}
                 </td>
-                <td v-if="shouldShowLocation && !warehouse" class="text-capitalize">
+                <td
+                  v-if="shouldShowLocation && !warehouse"
+                  class="text-capitalize"
+                >
                   <div
                     v-for="location in item.inwardLocations"
                     :key="location.id"
@@ -151,7 +168,7 @@
                   <td v-if="shouldShowLocation"></td>
                 </tr>
               </template>
-            </template> 
+            </template>
             <tr class="text-bold">
               <th></th>
               <th></th>

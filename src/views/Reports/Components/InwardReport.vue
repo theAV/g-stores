@@ -28,7 +28,12 @@
         class="elevation-1"
       >
         <template v-slot:[`item.inwardDate`]="{ item }">
-          {{ item.inwardDate | formatDate }}
+          <v-flex d-flex align-center>
+            <span v-if="item.isFruits" class="mr-2 hide-print">
+              <img src="../../../assets/healthy-food.png" />
+            </span>
+            <span> {{ item.inwardDate | formatDate }}</span>
+          </v-flex>
         </template>
         <template v-slot:[`item.totalQuantity`]="{ item }">
           {{ item.totalQuantity | maximumFractionDigits }}
@@ -83,7 +88,7 @@
             <th class="text-right">
               {{ sumField("totalWeight") | maximumFractionDigits }}
             </th>
-            
+
             <th></th>
             <th></th>
             <th v-if="shouldShowLocation"></th>
