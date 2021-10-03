@@ -188,6 +188,14 @@ const routes = [
             /* webpackChunkName: "ReportComponent" */ "../views/Reports/Report.vue"
           ),
       },
+      {
+        path: "/invoice",
+        name: "invoice",
+        component: () =>
+          import(
+            /* webpackChunkName: "invoice" */ "../views/Invoice/Invoice.vue"
+          ),
+      },
     ],
   },
 ];

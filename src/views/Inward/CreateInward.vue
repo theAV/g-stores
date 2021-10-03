@@ -277,7 +277,8 @@
                       <th class="text-left">Rack</th>
                       <th class="text-left">Slots</th>
                       <th class="text-left">Quantity</th>
-                      <th class="text-left">Weight</th>
+                      <th class="text-left">Weight kg/packet</th>
+                      <th class="text-left">Total Weight</th>
                       <th class="text-left">Rate</th>
                     </tr>
                   </thead>
@@ -289,6 +290,7 @@
                       <td>{{ item.slots }}</td>
                       <td>{{ item.quantity }}</td>
                       <td>{{ item.weight }}</td>
+                      <td>{{ item.quantity * item.weight }}</td>
                       <td>{{ item.rate }}</td>
                     </tr>
                   </tbody>
@@ -331,6 +333,16 @@
         ></add-location-form>
       </v-bottom-sheet>
     </v-card>
+    <v-layout row justify-center>
+      <v-dialog v-model="fruitBillDialog" persistent max-width="1000">
+        <div style="position: relative">
+          <v-btn flat icon light right style="z-index: 5;" absolute @click.native="closeBill">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+          <InvoiceTemplate :data="recentFruitInward" />
+        </div>
+      </v-dialog>
+    </v-layout>
   </section>
 </template>
 
@@ -343,6 +355,7 @@ import baseMixin from "@/mixins/base";
 import { convertToQuintal } from "@/utility";
 import commodityServices from "@/services/commodity";
 export default {
+  name: "CreateInward",
   components: {
     AddLocationForm: () => import("./components/AddLocationForm"),
     Classification: () => import("./components/Classification"),
@@ -350,9 +363,11 @@ export default {
     DatePicker: () => import("@/components/DatePicker/DatePicker"),
     SelectBox: () => import("@/components/SelectBox/SelectBox"),
     Form: () => import("@/components/Form/Form"),
+    InvoiceTemplate: () => import("@/components/Invoice/Invoice"),
   },
-  name: "CreateInward",
   data: () => ({
+    recentFruitInward: null,
+    fruitBillDialog: false,
     fruitsLocation: [],
     rangePicker: false,
     submitting: false,
@@ -490,10 +505,10 @@ export default {
             return a + Number(v.quantity);
           }, 0);
           const totalWeight = this.locations.reduce((a, v) => {
-            return a + Number(v.weight);
+            return a + Number(v.weight) * Number(v.quantity);
           }, 0);
           rest.totalQuantity = totalQuantity;
-          rest.totalWeight = totalWeight;
+          rest.totalWeight = convertToQuintal(totalWeight);
           rest.averageWeight = "0";
           deal.dealRate = 0;
         }
@@ -511,6 +526,17 @@ export default {
         }
         if (response.status === 200) {
           this.showSnackBar(response.data.message, "success");
+          if (this.form.isFruits) {
+            const rbForFruits = {
+              searchBy: {
+                searchField: "receiptNumber",
+                fieldVal: this.form.receiptNumber,
+              },
+            };
+            const response = await inwardServices.get(rbForFruits);
+            this.recentFruitInward = response.data[0];
+            this.fruitBillDialog = true;
+          }
           this.clearAll();
           this.submitting = false;
         }
@@ -518,6 +544,10 @@ export default {
         this.submitting = false;
         throw error;
       }
+    },
+    closeBill() {
+      this.recentFruitInward = null;
+      this.fruitBillDialog = false;
     },
     getKataWeight() {
       const { totalQuantity, averageWeight } = this.form;

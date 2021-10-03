@@ -29,6 +29,14 @@ const filters = {
     }
     return 0;
   },
+  toCurrency: (value) => {
+    console.log(value);
+    return value.toLocaleString("en-IN", {
+      maximumFractionDigits: 2,
+      style: "currency",
+      currency: "INR",
+    });
+  },
 };
 for (let key in filters) {
   Vue.filter(key, filters[key]);

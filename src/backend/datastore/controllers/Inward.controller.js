@@ -139,11 +139,19 @@ class Inward extends BaseController {
     }
   }
   async GetInwardList(requestBody) {
-    const { limit } = requestBody;
+    const { limit, searchBy } = requestBody;
+    let wherClause = {};
+    if (searchBy) {
+      wherClause = {
+        [searchBy.searchField]: {
+          [models.Sequelize.Op.like]: "%" + searchBy.fieldVal + "%",
+        },
+      };
+    }
     try {
       const result = await models.Inward.findAll({
         limit,
-        where: {},
+        where: wherClause,
         include: [
           {
             model: models.Customer,
@@ -151,6 +159,10 @@ class Inward extends BaseController {
           },
           models.Commodity,
           models.Category,
+          {
+            model: models.InwardLocation,
+            include: [models.Warehouse],
+          },
           {
             model: models.InwardDeal,
             include: [models.DealType],

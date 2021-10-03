@@ -98,7 +98,33 @@
             {{ item.balanceWeight | maximumFractionDigits }}
           </template>
           <template v-slot:[`item.totalQuantity`]="{ item }">
-            {{ item.totalQuantity | maximumFractionDigits }}
+            <v-menu
+              open-on-hover
+              top
+              :offset-y="true"
+              :offset-x="true"
+              v-if="item.isFruits"
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <div v-bind="attrs" v-on="on">
+                  {{ item.totalQuantity | maximumFractionDigits }}
+                </div>
+              </template>
+              <v-list dense>
+                <v-list-item
+                  class="text-subtitle-2"
+                  v-for="loc in item.inwardLocations"
+                  :key="loc.id"
+                >
+                  <b class="mr-1">{{ loc.quantity }}</b>
+                  {{ item.packagingType }} of
+                  <b class="mx-1">{{ loc.weight }}</b> kg
+                </v-list-item>
+              </v-list>
+            </v-menu>
+            <template v-else>
+              {{ item.totalQuantity | maximumFractionDigits }}
+            </template>
           </template>
           <template slot="body.append">
             <tr class="text-bold">
