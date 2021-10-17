@@ -97,6 +97,14 @@
           <template v-slot:[`item.balanceWeight`]="{ item }">
             {{ item.balanceWeight | maximumFractionDigits }}
           </template>
+          <!-- <template v-slot:[`item.totalWeight`]="{ item }">
+            <span v-if="item.isFruits">
+              {{ convertToKG(item.totalWeight) | maximumFractionDigits }}
+            </span>
+            <span v-else>
+              {{ item.totalWeight | maximumFractionDigits }}
+            </span>
+          </template> -->
           <template v-slot:[`item.totalQuantity`]="{ item }">
             <v-menu
               open-on-hover
@@ -169,6 +177,7 @@
 </template>
 
 <script>
+import { convertToKG } from "@/utility";
 import inwardServices from "@/services/inward";
 import baseMixin from "@/mixins/base";
 import UnloadComponent from "../Unload/Unload";
@@ -322,6 +331,9 @@ export default {
     });
   },
   methods: {
+    convertToKG(val){
+      return convertToKG(val);
+    },
     openUnloadLocationSheet(data) {
       EventBus.$emit("openUnloadLocationSheet", data);
     },

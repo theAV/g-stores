@@ -6,6 +6,7 @@
     transition="slide-y-transition"
     bottom
     min-width="auto"
+    
   >
     <template v-slot:activator="{ on, attrs }">
       <TextField
@@ -68,9 +69,9 @@ export default {
     value: function (newVal) {
       this.dates = newVal;
     },
-    dates: function (newVal) {
-      this.hiddenInputValues = newVal;
-    },
+    // dates: function (newVal) {
+    //   this.hiddenInputValues = newVal;
+    // },
   },
   computed: {
     computedDateFormattedMomentjs: {
@@ -86,10 +87,10 @@ export default {
   methods: {
     handleInput(e) {
       this.rangePicker = false;
-      this.hiddenInputValues = e;
+      console.log(e);
+      // this.hiddenInputValues = e;
       this.$emit("input", e);
     },
   },
 };
 </script>
-

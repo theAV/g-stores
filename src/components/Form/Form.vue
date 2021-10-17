@@ -35,7 +35,6 @@ export default {
   methods: {
     async submitHandler() {
       try {
-        console.log(this.scope)
         const isValid = await this.$refs.observerRef.validate(this.scope);
         if (!isValid) return;
         await this.submit();

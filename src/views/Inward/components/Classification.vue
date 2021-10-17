@@ -1,37 +1,9 @@
 <template>
   <div>
-    <!-- <v-simple-table class="mb-5" v-if="collection.length">
-      <template v-slot:default>
-        <thead>
-          <tr>
-            <th class="text-left">Quantity</th>
-            <th class="text-left">Weight</th>
-            <th class="text-left">Rate</th>
-            <th class="text-left">Chamber</th>
-            <th class="text-left">Floor</th>
-            <th class="text-left">Rack</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(item, i) in collection" :key="i">
-            <td>{{ item.quantity }}</td>
-            <td>{{ item.weight }}</td>
-            <td>{{ item.rate }}</td>
-            <td>{{ item.chamber }}</td>
-            <td>{{ item.floor }}</td>
-            <td>{{ item.rack }}</td>
-          </tr>
-        </tbody>
-      </template>
-    </v-simple-table> -->
     <v-card tile flat class="card">
       <v-card-title primary-title>Box Classification </v-card-title>
       <v-card-text>
-        <Form
-          ref="addFarm"
-          :submit="onSubmit"
-          scope="classificationForm"
-        >
+        <Form ref="addFarm" :submit="onSubmit" scope="classificationForm">
           <template v-slot:default>
             <v-row>
               <v-col md="2">
@@ -116,6 +88,13 @@
                   rules="required"
                 ></select-box>
               </v-col>
+              <v-col md="2">
+                <text-field
+                  v-model="slots"
+                  label="Slot numbers"
+                  dense
+                ></text-field>
+              </v-col>
             </v-row>
           </template>
           <template v-slot:actions="{ invalid }">
@@ -141,6 +120,7 @@
 
 <script>
 import warehouseMixin from "@/mixins/warehouse";
+import { convertToQuintal } from "@/utility";
 export default {
   name: "Classification",
   components: {
@@ -158,6 +138,7 @@ export default {
       floor: null,
       chamber: null,
       rack: null,
+      slots: null,
     };
   },
   props: {
@@ -192,6 +173,7 @@ export default {
           chamber: this.chamber,
           floor: this.floor,
           rack: this.rack,
+          slots: this.slots,
         });
         this.$refs.addFarm.clearForm();
       } catch (error) {}

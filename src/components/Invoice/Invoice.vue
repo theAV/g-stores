@@ -84,7 +84,7 @@
 </template>
 
 <script>
-import { getTodayDate } from "@/utility";
+import { getTodayDate, convertToKG } from "@/utility";
 export default {
   name: "InvoiceComponent",
   data() {
@@ -105,6 +105,7 @@ export default {
     },
   },
   methods: {
+    convertToKG(val){return convertToKG(val)},
     getTodayDate() {
       return getTodayDate();
     },

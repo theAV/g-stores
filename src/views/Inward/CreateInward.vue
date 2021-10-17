@@ -9,19 +9,19 @@
         >
       </v-card-title>
       <v-divider></v-divider>
+      <v-col cols="12">
+        <v-switch
+          color="danger"
+          hide-details
+          class="mt-0 d-inline-block"
+          label="Is Fruits?"
+          v-model="form.isFruits"
+        ></v-switch>
+      </v-col>
       <Form scope="inwardForm" ref="form" :submit="onSubmit">
         <template v-slot:default>
           <v-card-text class="pt-7 pb-0">
             <v-row>
-              <v-col cols="12">
-                <v-switch
-                  color="danger"
-                  hide-details
-                  class="mt-0 d-inline-block"
-                  label="Is Fruits?"
-                  v-model="form.isFruits"
-                ></v-switch>
-              </v-col>
               <v-col md="2">
                 <text-field
                   v-model="form.receiptNumber"
@@ -277,9 +277,11 @@
                       <th class="text-left">Rack</th>
                       <th class="text-left">Slots</th>
                       <th class="text-left">Quantity</th>
-                      <th class="text-left">Weight kg/packet</th>
-                      <th class="text-left">Total Weight</th>
-                      <th class="text-left">Rate</th>
+                      <th class="text-left">Weight</th>
+                      <template v-if="form.isFruits">
+                        <th class="text-left">Total Weight</th>
+                        <th class="text-left">Rate</th>
+                      </template>
                     </tr>
                   </thead>
                   <tbody>
@@ -290,8 +292,12 @@
                       <td>{{ item.slots }}</td>
                       <td>{{ item.quantity }}</td>
                       <td>{{ item.weight }}</td>
-                      <td>{{ item.quantity * item.weight }}</td>
-                      <td>{{ item.rate }}</td>
+                      <template v-if="form.isFruits">
+                        <td>
+                          {{ item.quantity * item.weight }}
+                        </td>
+                        <td>{{ item.rate }}</td>
+                      </template>
                     </tr>
                   </tbody>
                 </template>
@@ -336,7 +342,15 @@
     <v-layout row justify-center>
       <v-dialog v-model="fruitBillDialog" persistent max-width="1000">
         <div style="position: relative">
-          <v-btn flat icon light right style="z-index: 5;" absolute @click.native="closeBill">
+          <v-btn
+            flat
+            icon
+            light
+            right
+            style="z-index: 5"
+            absolute
+            @click.native="closeBill"
+          >
             <v-icon>mdi-close</v-icon>
           </v-btn>
           <InvoiceTemplate :data="recentFruitInward" />
@@ -378,7 +392,7 @@ export default {
       commodityId: "",
       categoryId: "",
       driverName: "",
-      inwardDate: null,
+      inwardDate: "",
       isLoading: false,
       packagingType: "bag",
       receiptNumber: null,
@@ -431,8 +445,11 @@ export default {
   watch: {
     "form.isFruits": function (newval) {
       if (newval) {
+        this.form.inwardDate = "";
         this.dealType = 3;
         this.form.packagingType = "packet";
+      } else {
+        this.clearAll();
       }
     },
     "form.isLoading": function (newVal) {
@@ -575,6 +592,7 @@ export default {
       this.locationSheet = false;
     },
     clearAll() {
+      this.form.inwardDate = "";
       this.$refs.form.clearForm();
       this.locations = [];
     },

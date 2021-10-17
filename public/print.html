@@ -264,6 +264,7 @@
 <script>
     const ipcRenderer = require("electron").ipcRenderer;
     ipcRenderer.on("printReport", async (event, content) => {
+        console.log(content);
         let title = document.getElementById("title");
         let subDetails = document.getElementById("subDetails");
         title.innerHTML = content.title || null;
